@@ -1,4 +1,4 @@
-# real-time-systems
+# Real-Time Systems
 Brief implementations of real-time scheduling algorithms with accompanying plots.
 
 ## Structure
