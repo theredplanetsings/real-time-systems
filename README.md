@@ -6,6 +6,8 @@ The Streamlit dashboard lets you build custom task sets, check schedulability te
 and generate schedules with hoverable job and resource details. Schedules can be
 exported as PNG, and task sets as CSV.
 
+Live app: https://real-time.streamlit.app/
+
 ### Run locally
 ```bash
 pip install -r requirements.txt
