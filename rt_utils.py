@@ -55,6 +55,9 @@ ALGORITHMS = [
     "Global DM",
     "Time Demand",
     "Priority Inversion",
+    "Partitioned EDF",
+    "Partitioned RM",
+    "Partitioned DM",
 ]
 
 PROTOCOLS = ["None", "PIP", "PCP", "NPP"]
@@ -761,6 +764,66 @@ def simulate_global_dm(tasks: List[TaskSpec], horizon: int, processors: int) -> 
                 ready.append(job)
 
     return segments
+
+
+def _task_weight(task: TaskSpec, metric: str) -> float:
+    if metric == "Density":
+        return task.computation / min(task.deadline, task.period)
+    return task.computation / task.period
+
+
+def partition_tasks(
+    tasks: List[TaskSpec],
+    processors: int,
+    strategy: str,
+    metric: str,
+) -> Tuple[List[List[TaskSpec]], List[float], bool]:
+    assignments: List[List[TaskSpec]] = [[] for _ in range(processors)]
+    loads = [0.0 for _ in range(processors)]
+    overloaded = False
+
+    weighted = [(task, _task_weight(task, metric)) for task in tasks]
+    weighted.sort(key=lambda item: item[1], reverse=True)
+
+    for task, weight in weighted:
+        fit_indices = [i for i in range(processors) if loads[i] + weight <= 1.0]
+        if fit_indices:
+            if strategy == "Best-fit":
+                target = max(fit_indices, key=lambda i: loads[i])
+            elif strategy == "Worst-fit":
+                target = min(fit_indices, key=lambda i: loads[i])
+            else:
+                target = fit_indices[0]
+        else:
+            overloaded = True
+            target = min(range(processors), key=lambda i: loads[i])
+
+        assignments[target].append(task)
+        loads[target] += weight
+
+    return assignments, loads, overloaded
+
+
+def simulate_partitioned(
+    tasks: List[TaskSpec],
+    horizon: int,
+    processors: int,
+    algorithm: str,
+    strategy: str,
+    metric: str,
+) -> Tuple[List[Dict[str, object]], List[float], bool]:
+    assignments, loads, overloaded = partition_tasks(tasks, processors, strategy, metric)
+    segments: List[Dict[str, object]] = []
+
+    for idx, partition in enumerate(assignments, start=1):
+        if not partition:
+            continue
+        part_segments = simulate_uniprocessor(partition, horizon, algorithm, "None", "CPU then resources")
+        for segment in part_segments:
+            segment["processor"] = f"P{idx}"
+        segments.extend(part_segments)
+
+    return segments, loads, overloaded
 
 def cyclic_executive_frames(tasks: List[TaskSpec]) -> Tuple[int, List[int]]:
     hyper = compute_hyperperiod([task.period for task in tasks])

@@ -15,6 +15,9 @@ PAGE_MAP = {
     "Global DM": "pages/09_Global_DM.py",
     "Time Demand": "pages/10_Time_Demand.py",
     "Priority Inversion": "pages/11_Priority_Inversion.py",
+    "Partitioned EDF": "pages/12_Partitioned_EDF.py",
+    "Partitioned RM": "pages/13_Partitioned_RM.py",
+    "Partitioned DM": "pages/14_Partitioned_DM.py",
 }
 
 def render_sidebar(current_algorithm: str, show_protocol: bool = True) -> Optional[str]:
