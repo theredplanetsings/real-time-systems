@@ -11,10 +11,10 @@ PAGE_MAP = {
     "DM": "pages/05_DM.py",
     "Cyclic Executive": "pages/06_Cyclic_Executive.py",
     "Global RM": "pages/07_Global_RM.py",
-    "Global EDF": "pages/10_Global_EDF.py",
-    "Global DM": "pages/11_Global_DM.py",
-    "Time Demand": "pages/08_Time_Demand.py",
-    "Priority Inversion": "pages/09_Priority_Inversion.py",
+    "Global EDF": "pages/08_Global_EDF.py",
+    "Global DM": "pages/09_Global_DM.py",
+    "Time Demand": "pages/10_Time_Demand.py",
+    "Priority Inversion": "pages/11_Priority_Inversion.py",
 }
 
 def render_sidebar(current_algorithm: str, show_protocol: bool = True) -> Optional[str]:
