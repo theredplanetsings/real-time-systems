@@ -193,7 +193,7 @@ def task_csv_bytes(df: pd.DataFrame) -> bytes:
 def schedule_png_bytes(fig) -> Optional[bytes]:
     try:
         return fig.to_image(format="png")
-    except ValueError:
+    except (ValueError, RuntimeError):
         return None
 
 def schedule_dataframe(segments: List[Dict[str, object]]) -> pd.DataFrame:
