@@ -12,6 +12,7 @@ PAGE_MAP = {
     "Cyclic Executive": "pages/06_Cyclic_Executive.py",
     "Global RM": "pages/07_Global_RM.py",
     "Global EDF": "pages/10_Global_EDF.py",
+    "Global DM": "pages/11_Global_DM.py",
     "Time Demand": "pages/08_Time_Demand.py",
     "Priority Inversion": "pages/09_Priority_Inversion.py",
 }
