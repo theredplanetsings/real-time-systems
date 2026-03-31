@@ -51,6 +51,7 @@ ALGORITHMS = [
     "DM",
     "Cyclic Executive",
     "Global RM",
+    "Global EDF",
     "Time Demand",
     "Priority Inversion",
 ]
@@ -137,6 +138,18 @@ def schedulability_summary(
             summary["metric"] = "Utilisation"
             summary["limit"] = float(processors)
             summary["value"] = total_util
+        return summary
+
+    if algorithm == "Global EDF":
+        if total_density <= processors:
+            summary["status"] = "pass"
+            summary["detail"] = f"Density <= {processors} (processors)"
+        else:
+            summary["status"] = "warn"
+            summary["detail"] = f"Density > {processors} (processors)"
+            summary["metric"] = "Density"
+            summary["limit"] = float(processors)
+            summary["value"] = total_density
         return summary
 
     if algorithm == "Cyclic Executive":
@@ -623,6 +636,48 @@ def simulate_global_rm(tasks: List[TaskSpec], horizon: int, processors: int) -> 
             job_index += 1
 
         ready.sort(key=lambda j: j.task.period)
+        assignments: List[Optional[JobState]] = []
+        for _ in range(processors):
+            assignments.append(ready.pop(0) if ready else None)
+
+        for proc_id, job in enumerate(assignments, start=1):
+            if job is None:
+                continue
+            job.remaining_cpu = max(job.remaining_cpu - 1, 0)
+            segments.append(
+                {
+                    "start": time,
+                    "end": time + 1,
+                    "lane": f"Task {job.task.task_id}",
+                    "task": f"T{job.task.task_id}",
+                    "job": job.job_id,
+                    "phase": "CPU",
+                    "resource": "-",
+                    "processor": f"P{proc_id}",
+                    "duration": 1,
+                    "release": job.release_time,
+                    "deadline": job.absolute_deadline,
+                    "remaining": job.remaining_cpu,
+                }
+            )
+            if job.remaining_cpu > 0:
+                ready.append(job)
+
+    return segments
+
+
+def simulate_global_edf(tasks: List[TaskSpec], horizon: int, processors: int) -> List[Dict[str, object]]:
+    jobs = generate_jobs(tasks, horizon, "CPU then resources")
+    ready: List[JobState] = []
+    job_index = 0
+    segments: List[Dict[str, object]] = []
+
+    for time in range(horizon):
+        while job_index < len(jobs) and jobs[job_index][0] == time:
+            ready.append(jobs[job_index][1])
+            job_index += 1
+
+        ready.sort(key=lambda j: j.absolute_deadline)
         assignments: List[Optional[JobState]] = []
         for _ in range(processors):
             assignments.append(ready.pop(0) if ready else None)
