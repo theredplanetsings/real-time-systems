@@ -60,7 +60,52 @@ ALGORITHMS = [
     "Partitioned DM",
 ]
 
+ALGORITHM_FAMILIES: Dict[str, Dict[str, object]] = {
+    "EDF": {
+        "label": "Earliest Deadline First",
+        "variants": {
+            "Uniprocessor": {"algorithm": "EDF", "mode": "uniprocessor"},
+            "Global": {"algorithm": "Global EDF", "mode": "global"},
+            "Partitioned": {"algorithm": "Partitioned EDF", "mode": "partitioned"},
+        },
+    },
+    "EDD": {
+        "label": "Earliest Due Date",
+        "variants": {
+            "Uniprocessor": {"algorithm": "EDD", "mode": "uniprocessor"},
+        },
+    },
+    "RM": {
+        "label": "Rate Monotonic",
+        "variants": {
+            "Uniprocessor": {"algorithm": "RM", "mode": "uniprocessor"},
+            "Global": {"algorithm": "Global RM", "mode": "global"},
+            "Partitioned": {"algorithm": "Partitioned RM", "mode": "partitioned"},
+        },
+    },
+    "DM": {
+        "label": "Deadline Monotonic",
+        "variants": {
+            "Uniprocessor": {"algorithm": "DM", "mode": "uniprocessor"},
+            "Global": {"algorithm": "Global DM", "mode": "global"},
+            "Partitioned": {"algorithm": "Partitioned DM", "mode": "partitioned"},
+        },
+    },
+}
+
 PROTOCOLS = ["None", "PIP", "PCP", "NPP"]
+
+
+def family_names() -> List[str]:
+    return list(ALGORITHM_FAMILIES.keys())
+
+
+def variants_for_family(family: str) -> List[str]:
+    family_meta = ALGORITHM_FAMILIES.get(family, {})
+    variants = family_meta.get("variants", {})
+    if isinstance(variants, dict):
+        return list(variants.keys())
+    return []
 
 def utilisation(tasks: List[TaskSpec]) -> float:
     if not tasks:
@@ -811,6 +856,8 @@ def simulate_partitioned(
     algorithm: str,
     strategy: str,
     metric: str,
+    protocol: str = "None",
+    resource_order: str = "CPU then resources",
 ) -> Tuple[List[Dict[str, object]], List[float], bool]:
     assignments, loads, overloaded = partition_tasks(tasks, processors, strategy, metric)
     segments: List[Dict[str, object]] = []
@@ -818,7 +865,7 @@ def simulate_partitioned(
     for idx, partition in enumerate(assignments, start=1):
         if not partition:
             continue
-        part_segments = simulate_uniprocessor(partition, horizon, algorithm, "None", "CPU then resources")
+        part_segments = simulate_uniprocessor(partition, horizon, algorithm, protocol, resource_order)
         for segment in part_segments:
             segment["processor"] = f"P{idx}"
         segments.extend(part_segments)
