@@ -128,6 +128,23 @@ def render_schedulability(tasks: List[TaskSpec], algorithm: str, processors: int
         st.info(summary["detail"])
 
 
+@st.cache_data(show_spinner=False)
+def cached_schedule_figure(
+    segments: list[dict[str, object]],
+    title: str,
+    tick_step: Optional[int] = None,
+    range_start: Optional[int] = None,
+    range_end: Optional[int] = None,
+):
+    return schedule_figure(
+        segments,
+        title,
+        tick_step=tick_step,
+        range_start=range_start,
+        range_end=range_end,
+    )
+
+
 def render_algorithm_workbench(
     *,
     initial_family: Optional[str] = None,
@@ -335,7 +352,7 @@ def render_algorithm_workbench(
         if not segments:
             st.warning("No scheduled jobs for the current range. Increase the range or check task parameters.")
 
-        fig = schedule_figure(
+        fig = cached_schedule_figure(
             segments,
             f"{algorithm_name} Schedule",
             tick_step=int(tick_step),
@@ -344,9 +361,9 @@ def render_algorithm_workbench(
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        png = schedule_png_bytes(fig)
+        png, png_error = schedule_png_bytes(fig)
         if png is None:
-            st.warning("PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
+            st.warning(png_error or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
         else:
             st.download_button(
                 label="Download schedule PNG",
