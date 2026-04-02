@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-from st_helpers import render_task_inputs
+from st_helpers import cached_schedule_figure, render_task_inputs
 from rt_utils import (
+    COMPARE_ALGORITHMS,
     TaskSpec,
     build_task_dataframe,
-    schedule_figure,
     schedule_png_bytes,
     simulate_global_dm,
     simulate_global_edf,
@@ -17,19 +17,6 @@ from rt_utils import (
 st.set_page_config(page_title="Compare Mode", layout="wide")
 st.title("Compare Mode")
 st.caption("Compare multiple algorithms across one or many task sets.")
-
-COMPARE_ALGORITHMS = {
-    "RM": {"mode": "uniprocessor", "family": "RM"},
-    "DM": {"mode": "uniprocessor", "family": "DM"},
-    "EDF": {"mode": "uniprocessor", "family": "EDF"},
-    "EDD": {"mode": "uniprocessor", "family": "EDD"},
-    "Global RM": {"mode": "global", "family": "RM"},
-    "Global EDF": {"mode": "global", "family": "EDF"},
-    "Global DM": {"mode": "global", "family": "DM"},
-    "Partitioned RM": {"mode": "partitioned", "family": "RM"},
-    "Partitioned EDF": {"mode": "partitioned", "family": "EDF"},
-    "Partitioned DM": {"mode": "partitioned", "family": "DM"},
-}
 
 def _default_assignment_matrix(task_set_count: int, algorithm_count: int, unique_default: bool) -> pd.DataFrame:
     rows = []
@@ -509,7 +496,7 @@ if st.button("Run Compare", type="primary"):
                 st.warning("No scheduled jobs for this run in the selected horizon.")
                 continue
 
-            fig = schedule_figure(
+            fig = cached_schedule_figure(
                 segments,
                 title=heading,
                 tick_step=tick_step,
@@ -518,7 +505,7 @@ if st.button("Run Compare", type="primary"):
             )
             st.plotly_chart(fig, use_container_width=True)
 
-            png = schedule_png_bytes(fig)
+            png, png_error = schedule_png_bytes(fig)
             if png is not None:
                 st.download_button(
                     label="Download schedule PNG",
@@ -527,6 +514,8 @@ if st.button("Run Compare", type="primary"):
                     mime="image/png",
                     key=f"dl_png_{ts_index}_{alg_index}",
                 )
+            elif png_error is not None:
+                st.warning(png_error)
 
             ts_csv = build_task_dataframe(all_task_sets[ts_index], resource_names_for_task_set[ts_index])
             st.download_button(
