@@ -1,11 +1,10 @@
 import streamlit as st
-from st_helpers import render_schedulability, render_sidebar, render_task_inputs
+from st_helpers import cached_schedule_figure, render_schedulability, render_sidebar, render_task_inputs
 from rt_utils import (
     TaskSpec,
     build_task_dataframe,
     cyclic_executive_frames,
     cyclic_executive_schedule,
-    schedule_figure,
     schedule_png_bytes,
     task_csv_bytes,
 )
@@ -70,7 +69,7 @@ if st.button("Analyse frame sizes"):
         st.caption(f"Segments generated: {len(segments)}")
         if not segments:
             st.warning("No scheduled jobs for the current frame. Adjust the frame size or task parameters.")
-        fig = schedule_figure(
+        fig = cached_schedule_figure(
             segments,
             "Cyclic Executive Schedule",
             tick_step=int(tick_step),
@@ -79,9 +78,9 @@ if st.button("Analyse frame sizes"):
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        png = schedule_png_bytes(fig)
+        png, png_error = schedule_png_bytes(fig)
         if png is None:
-            st.warning("PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
+            st.warning(png_error or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
         else:
             st.download_button(
                 label="Download schedule PNG",
