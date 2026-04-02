@@ -95,6 +95,19 @@ ALGORITHM_FAMILIES: Dict[str, Dict[str, object]] = {
 
 PROTOCOLS = ["None", "PIP", "PCP", "NPP"]
 
+COMPARE_ALGORITHMS: Dict[str, Dict[str, str]] = {
+    "RM": {"mode": "uniprocessor", "family": "RM"},
+    "DM": {"mode": "uniprocessor", "family": "DM"},
+    "EDF": {"mode": "uniprocessor", "family": "EDF"},
+    "EDD": {"mode": "uniprocessor", "family": "EDD"},
+    "Global RM": {"mode": "global", "family": "RM"},
+    "Global EDF": {"mode": "global", "family": "EDF"},
+    "Global DM": {"mode": "global", "family": "DM"},
+    "Partitioned RM": {"mode": "partitioned", "family": "RM"},
+    "Partitioned EDF": {"mode": "partitioned", "family": "EDF"},
+    "Partitioned DM": {"mode": "partitioned", "family": "DM"},
+}
+
 
 def family_names() -> List[str]:
     return list(ALGORITHM_FAMILIES.keys())
@@ -264,11 +277,11 @@ def task_csv_bytes(df: pd.DataFrame) -> bytes:
     df.to_csv(buf, index=False)
     return buf.getvalue().encode("utf-8")
 
-def schedule_png_bytes(fig) -> Optional[bytes]:
+def schedule_png_bytes(fig) -> Tuple[Optional[bytes], Optional[str]]:
     try:
-        return fig.to_image(format="png")
-    except Exception:
-        return None
+        return fig.to_image(format="png"), None
+    except (ImportError, ModuleNotFoundError, RuntimeError, ValueError, OSError) as exc:
+        return None, f"PNG export failed: {exc}"
 
 def schedule_dataframe(segments: List[Dict[str, object]]) -> pd.DataFrame:
     return pd.DataFrame(segments)
