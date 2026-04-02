@@ -15,6 +15,7 @@ exported as PNG, and task sets as CSV.
 ### Navigation
 - `pages/00_Algorithm_Explorer.py`: Main workflow for scheduling experiments
 - `pages/01_Task_Set_Builder.py`: Task-set authoring and CSV export
+- `pages/02_Compare_Mode.py`: Compare multiple algorithms across shared or unique task sets
 - `pages/06_Cyclic_Executive.py`, `pages/10_Time_Demand.py`, `pages/11_Priority_Inversion.py`: Specialized analysis pages
 
 Live app: https://real-time.streamlit.app/
