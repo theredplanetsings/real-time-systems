@@ -5,6 +5,9 @@ Brief implementations of real-time scheduling algorithms with accompanying plots
 - Streamlit navigation is now Explorer-first: choose a family (EDF, EDD, RM, DM), then choose a variant (Uniprocessor, Global, Partitioned).
 - Sidebar task-set controls are dynamic: enabling a parameter reveals its default-value control.
 - Resource-aware protocol options (None, PIP, PCP, NPP) are available wherever resource simulation applies.
+- Schedule plots now reuse a cached figure helper in the interactive pages, which makes reruns feel faster.
+- PNG export now surfaces clearer failures instead of silently dropping downloads when image export is unavailable.
+- Compare Mode now uses the shared algorithm registry from the core utilities, keeping the page definitions aligned.
 - Legacy flat algorithm pages were archived under `legacy_pages/` to keep the main sidebar focused.
 
 ## Dashboard
