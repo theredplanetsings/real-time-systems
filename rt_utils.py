@@ -58,6 +58,7 @@ ALGORITHMS = [
     "Partitioned EDF",
     "Partitioned RM",
     "Partitioned DM",
+    "Slack Stealing",
 ]
 
 ALGORITHM_FAMILIES: Dict[str, Dict[str, object]] = {
@@ -244,6 +245,11 @@ def schedulability_summary(
     if algorithm == "Priority Inversion":
         summary["status"] = "info"
         summary["detail"] = "Feasibility depends on protocol and blocking"
+        return summary
+
+    if algorithm == "Slack Stealing":
+        summary["status"] = "info"
+        summary["detail"] = "Periodic jobs use EDF; aperiodic jobs execute in reclaimed slack."
         return summary
 
     return summary
@@ -884,6 +890,93 @@ def simulate_partitioned(
         segments.extend(part_segments)
 
     return segments, loads, overloaded
+
+
+def simulate_slack_stealing(
+    periodic_tasks: List[TaskSpec],
+    aperiodic_jobs: List[Dict[str, int]],
+    horizon: int,
+) -> List[Dict[str, object]]:
+    """Simulate uniprocessor slack stealing using idle-time reclamation under EDF.
+
+    Periodic jobs always have priority (EDF order). When no periodic job is ready,
+    the processor executes the earliest-deadline ready aperiodic job.
+    """
+    periodic_jobs = generate_jobs(periodic_tasks, horizon, "CPU then resources")
+    ready_periodic: List[JobState] = []
+    ready_aperiodic: List[Dict[str, int]] = []
+    segments: List[Dict[str, object]] = []
+
+    normalized_aperiodic = sorted(
+        [
+            {
+                "job_id": int(job["job_id"]),
+                "release": int(job["release"]),
+                "deadline": int(job["deadline"]),
+                "remaining": int(job["computation"]),
+            }
+            for job in aperiodic_jobs
+        ],
+        key=lambda j: (j["release"], j["deadline"], j["job_id"]),
+    )
+
+    periodic_idx = 0
+    aperiodic_idx = 0
+
+    for time in range(horizon):
+        while periodic_idx < len(periodic_jobs) and periodic_jobs[periodic_idx][0] == time:
+            ready_periodic.append(periodic_jobs[periodic_idx][1])
+            periodic_idx += 1
+
+        while aperiodic_idx < len(normalized_aperiodic) and normalized_aperiodic[aperiodic_idx]["release"] == time:
+            ready_aperiodic.append(normalized_aperiodic[aperiodic_idx])
+            aperiodic_idx += 1
+
+        ready_periodic = [job for job in ready_periodic if job.remaining_cpu > 0]
+        ready_aperiodic = [job for job in ready_aperiodic if job["remaining"] > 0]
+
+        if ready_periodic:
+            ready_periodic.sort(key=lambda j: (j.absolute_deadline, j.task.task_id, j.job_number))
+            job = ready_periodic[0]
+            job.remaining_cpu = max(job.remaining_cpu - 1, 0)
+            segments.append(
+                {
+                    "start": time,
+                    "end": time + 1,
+                    "lane": f"Task {job.task.task_id}",
+                    "task": f"T{job.task.task_id}",
+                    "job": job.job_id,
+                    "phase": "CPU",
+                    "resource": "-",
+                    "duration": 1,
+                    "release": job.release_time,
+                    "deadline": job.absolute_deadline,
+                    "remaining": job.remaining_cpu,
+                }
+            )
+            continue
+
+        if ready_aperiodic:
+            ready_aperiodic.sort(key=lambda j: (j["deadline"], j["release"], j["job_id"]))
+            job = ready_aperiodic[0]
+            job["remaining"] = max(job["remaining"] - 1, 0)
+            segments.append(
+                {
+                    "start": time,
+                    "end": time + 1,
+                    "lane": f"Aperiodic {job['job_id']}",
+                    "task": "AP",
+                    "job": f"AP{job['job_id']}",
+                    "phase": "Slack",
+                    "resource": "-",
+                    "duration": 1,
+                    "release": job["release"],
+                    "deadline": job["deadline"],
+                    "remaining": job["remaining"],
+                }
+            )
+
+    return segments
 
 def cyclic_executive_frames(tasks: List[TaskSpec]) -> Tuple[int, List[int]]:
     hyper = compute_hyperperiod([task.period for task in tasks])
