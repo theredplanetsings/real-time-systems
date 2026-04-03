@@ -6,6 +6,7 @@ from rt_utils import (
     build_task_dataframe,
     schedule_png_bytes,
     simulate_slack_stealing,
+    slack_stealing_stats,
     task_csv_bytes,
 )
 
@@ -140,6 +141,21 @@ if st.button("Generate Slack Stealing schedule"):
         range_end=int(range_end),
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    metrics, stats_df = slack_stealing_stats(segments, aperiodic_defaults, int(range_end))
+
+    st.subheader("Slack Stats")
+    kpi_cols = st.columns(6)
+    kpi_cols[0].metric("Total slack used", f"{metrics['total_slack_used']:.0f}")
+    kpi_cols[1].metric("Completion ratio", f"{100.0 * metrics['completion_ratio']:.1f}%")
+    kpi_cols[2].metric("Mean response", f"{metrics['mean_response_time']:.2f}")
+    kpi_cols[3].metric("Mean waiting", f"{metrics['mean_waiting_time']:.2f}")
+    kpi_cols[4].metric("Max waiting", f"{metrics['max_waiting_time']:.2f}")
+    kpi_cols[5].metric("Deadline misses", f"{metrics['deadline_misses']:.0f}")
+
+    if not stats_df.empty:
+        st.caption("Aperiodic job outcomes")
+        st.dataframe(stats_df, use_container_width=True)
 
     png, png_error = schedule_png_bytes(fig)
     if png is None:
