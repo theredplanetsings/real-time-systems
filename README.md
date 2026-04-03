@@ -28,6 +28,24 @@ exported as PNG, and task sets as CSV.
 - Ready aperiodic jobs execute only when no periodic job is runnable.
 - The page supports CSV export for periodic and aperiodic inputs, plus PNG schedule export.
 
+### Slack Stealing walkthrough
+Use this quick setup to see slack reclamation behavior:
+
+- Periodic tasks
+	- T1: phase 0, period 5, computation 1, deadline 5
+	- T2: phase 0, period 10, computation 2, deadline 10
+- Aperiodic jobs
+	- AP1: release 1, computation 2, relative deadline 8
+	- AP2: release 6, computation 1, relative deadline 6
+- Time range
+	- Start 0, End 20, Tick 1
+
+Expected behavior:
+- Periodic EDF jobs run whenever ready.
+- Aperiodic jobs run in gaps where no periodic job is ready.
+- AP1 starts shortly after release when the first idle window appears.
+- AP2 is served in a later slack window after periodic demand is cleared.
+
 Live app: https://real-time.streamlit.app/
 
 ### Run locally
@@ -51,7 +69,6 @@ real-time-systems/
 ├── rm-pip/                # Rate Monotonic with Priority Inheritance Protocol
 ├── time-demand-analysis/  # Time-demand analysis for a selected task
 ├── pages/                 # Streamlit pages (Explorer + specialized tools)
-│   └── 15_Slack_Stealing.py  # Slack stealing (periodic EDF + aperiodic queue)
 ├── rt_utils.py            # Scheduling logic and plot helpers
 ├── st_helpers.py          # Streamlit UI helpers
 ├── streamlit_app.py       # Dashboard landing page
