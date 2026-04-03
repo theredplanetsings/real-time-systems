@@ -978,6 +978,135 @@ def simulate_slack_stealing(
 
     return segments
 
+
+def slack_stealing_stats(
+    segments: List[Dict[str, object]],
+    aperiodic_jobs: List[Dict[str, int]],
+    horizon: int,
+) -> Tuple[Dict[str, float], pd.DataFrame]:
+    """Compute aggregate and per-job metrics for Slack Stealing runs."""
+    jobs = []
+    for job in aperiodic_jobs:
+        jobs.append(
+            {
+                "job_id": int(job["job_id"]),
+                "release": int(job["release"]),
+                "deadline": int(job["deadline"]),
+                "computation": int(job["computation"]),
+            }
+        )
+
+    if not jobs:
+        empty = pd.DataFrame(
+            columns=[
+                "job_id",
+                "release",
+                "deadline",
+                "computation",
+                "executed",
+                "completion_time",
+                "response_time",
+                "waiting_time",
+                "completed",
+                "deadline_missed",
+            ]
+        )
+        return (
+            {
+                "total_slack_used": 0.0,
+                "completion_ratio": 0.0,
+                "mean_response_time": 0.0,
+                "mean_waiting_time": 0.0,
+                "max_waiting_time": 0.0,
+                "deadline_misses": 0.0,
+            },
+            empty,
+        )
+
+    ap_segments = [
+        segment
+        for segment in segments
+        if str(segment.get("job", "")).startswith("AP") and segment.get("phase") == "Slack"
+    ]
+
+    executed_by_job: Dict[int, int] = {}
+    finish_by_job: Dict[int, int] = {}
+    total_slack_used = 0
+
+    for segment in ap_segments:
+        job_name = str(segment.get("job", ""))
+        if not job_name.startswith("AP"):
+            continue
+        try:
+            job_id = int(job_name[2:])
+        except ValueError:
+            continue
+
+        duration = int(segment.get("duration", int(segment.get("end", 0)) - int(segment.get("start", 0))))
+        end = int(segment.get("end", 0))
+
+        executed_by_job[job_id] = executed_by_job.get(job_id, 0) + duration
+        finish_by_job[job_id] = max(finish_by_job.get(job_id, 0), end)
+        total_slack_used += duration
+
+    rows = []
+    completed_count = 0
+    response_sum = 0
+    waiting_sum = 0
+    waiting_values: List[int] = []
+    deadline_misses = 0
+
+    for job in sorted(jobs, key=lambda item: item["job_id"]):
+        job_id = job["job_id"]
+        executed = executed_by_job.get(job_id, 0)
+        completed = executed >= job["computation"]
+        completion_time: Optional[int] = finish_by_job.get(job_id) if completed else None
+
+        response_time: Optional[int] = None
+        waiting_time: Optional[int] = None
+        if completed and completion_time is not None:
+            response_time = completion_time - job["release"]
+            waiting_time = response_time - job["computation"]
+            completed_count += 1
+            response_sum += response_time
+            waiting_sum += waiting_time
+            waiting_values.append(waiting_time)
+
+        missed = False
+        if completed and completion_time is not None and completion_time > job["deadline"]:
+            missed = True
+        if not completed and job["deadline"] <= horizon:
+            missed = True
+        if missed:
+            deadline_misses += 1
+
+        rows.append(
+            {
+                "job_id": job_id,
+                "release": job["release"],
+                "deadline": job["deadline"],
+                "computation": job["computation"],
+                "executed": executed,
+                "completion_time": completion_time,
+                "response_time": response_time,
+                "waiting_time": waiting_time,
+                "completed": completed,
+                "deadline_missed": missed,
+            }
+        )
+
+    total_jobs = len(jobs)
+    metrics = {
+        "total_slack_used": float(total_slack_used),
+        "completion_ratio": float(completed_count / total_jobs) if total_jobs else 0.0,
+        "mean_response_time": float(response_sum / completed_count) if completed_count else 0.0,
+        "mean_waiting_time": float(waiting_sum / completed_count) if completed_count else 0.0,
+        "max_waiting_time": float(max(waiting_values)) if waiting_values else 0.0,
+        "deadline_misses": float(deadline_misses),
+    }
+
+    return metrics, pd.DataFrame(rows)
+
 def cyclic_executive_frames(tasks: List[TaskSpec]) -> Tuple[int, List[int]]:
     hyper = compute_hyperperiod([task.period for task in tasks])
     c_max = max(task.computation for task in tasks)
