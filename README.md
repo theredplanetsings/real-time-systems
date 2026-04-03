@@ -9,6 +9,7 @@ Brief implementations of real-time scheduling algorithms with accompanying plots
 - PNG export now surfaces clearer failures instead of silently dropping downloads when image export is unavailable.
 - Compare Mode now uses the shared algorithm registry from the core utilities, keeping the page definitions aligned.
 - Added a dedicated Slack Stealing page with sidebar controls for periodic EDF tasks and aperiodic jobs.
+- Slack Stealing now includes a stats panel with KPI metrics and per-aperiodic-job outcomes.
 - Legacy flat algorithm pages were archived under `legacy_pages/` to keep the main sidebar focused.
 
 ## Dashboard
@@ -27,6 +28,8 @@ exported as PNG, and task sets as CSV.
 - Periodic jobs are scheduled with EDF first.
 - Ready aperiodic jobs execute only when no periodic job is runnable.
 - The page supports CSV export for periodic and aperiodic inputs, plus PNG schedule export.
+- A Slack Stats panel reports total slack used, completion ratio, response/waiting times, and deadline misses.
+- A detailed table shows per-aperiodic-job execution and completion outcomes.
 
 ### Slack Stealing walkthrough
 Use this quick setup to see slack reclamation behavior:
