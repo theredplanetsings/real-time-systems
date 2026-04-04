@@ -61,6 +61,8 @@ Expected behavior:
 	- `static`: mixed-criticality priorities/budgets are applied without mode switch.
 	- `adaptive`: starts in LO mode and switches to HI mode when a HI-criticality job exceeds `C-LO`; low-criticality jobs are then dropped.
 - Configure default `C-LO` and `C-HI` from the sidebar and fine-tune per task in the table.
+- Schedules now show explicit LO->HI mode-switch markers and a mixed-criticality stats panel (switch count/time and HI-mode execution time).
+- Task input validation now auto-corrects invalid criticality labels and enforces `C-LO >= 1` and `C-HI >= C-LO`, with warnings.
 
 Live app: https://real-time.streamlit.app/
 
