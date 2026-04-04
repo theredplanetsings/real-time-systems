@@ -9,6 +9,7 @@ from rt_utils import (
     build_task_dataframe,
     family_names,
     schedulability_summary,
+    mixed_criticality_stats,
     schedule_figure,
     schedule_png_bytes,
     simulate_global_dm,
@@ -104,6 +105,8 @@ def render_task_inputs(
     else:
         df = edited
 
+    validation_messages: List[str] = []
+
     if include_criticality and criticality_choices:
         allowed = {str(choice) for choice in criticality_choices}
         if "criticality" in df.columns:
@@ -111,7 +114,48 @@ def render_task_inputs(
         else:
             crit_series = pd.Series([default_criticality] * len(df), index=df.index)
         df["criticality"] = crit_series.astype(str).str.strip()
+        invalid_or_empty = (~df["criticality"].isin(allowed)) | (df["criticality"] == "")
+        invalid_count = int(invalid_or_empty.sum())
         df["criticality"] = df["criticality"].where(df["criticality"].isin(allowed), default_criticality)
+        df["criticality"] = df["criticality"].replace("", default_criticality)
+        if invalid_count > 0:
+            validation_messages.append(
+                f"Corrected criticality value(s) in {invalid_count} row(s) to default '{default_criticality}'."
+            )
+
+    if include_wcet:
+        if "wcet_lo" in df.columns:
+            wcet_lo_series = pd.to_numeric(df["wcet_lo"], errors="coerce")
+        else:
+            wcet_lo_series = pd.Series([default_wcet_lo or default_computation] * len(df), index=df.index)
+
+        if "wcet_hi" in df.columns:
+            wcet_hi_series = pd.to_numeric(df["wcet_hi"], errors="coerce")
+        else:
+            wcet_hi_series = pd.Series([default_wcet_hi or default_computation] * len(df), index=df.index)
+
+        wcet_lo_series = wcet_lo_series.fillna(default_wcet_lo or default_computation)
+        wcet_hi_series = wcet_hi_series.fillna(default_wcet_hi or default_computation)
+
+        lo_below_one = wcet_lo_series < 1
+        if bool(lo_below_one.any()):
+            validation_messages.append(
+                f"Raised C-LO to 1 for {int(lo_below_one.sum())} row(s)."
+            )
+        wcet_lo_series = wcet_lo_series.clip(lower=1)
+
+        hi_below_lo = wcet_hi_series < wcet_lo_series
+        if bool(hi_below_lo.any()):
+            validation_messages.append(
+                f"Raised C-HI to match C-LO in {int(hi_below_lo.sum())} row(s)."
+            )
+        wcet_hi_series = wcet_hi_series.where(~hi_below_lo, wcet_lo_series)
+
+        df["wcet_lo"] = wcet_lo_series.astype(int)
+        df["wcet_hi"] = wcet_hi_series.astype(int)
+
+    for msg in validation_messages:
+        st.warning(msg)
 
     rows: List[TaskSpec] = []
     for _, row in df.iterrows():
@@ -475,6 +519,20 @@ def render_algorithm_workbench(
             range_end=int(range_end),
         )
         st.plotly_chart(fig, use_container_width=True)
+
+        mc_stats = mixed_criticality_stats(segments)
+        if mc_stats["enabled"]:
+            st.subheader("Mixed-Criticality Stats")
+            s1, s2, s3, s4, s5 = st.columns(5)
+            s1.metric("Mode switches", f"{mc_stats['mode_switch_count']}")
+            first_switch = mc_stats["first_switch_time"]
+            s2.metric("First switch", "N/A" if first_switch is None else f"t={first_switch}")
+            s3.metric("Initial mode", str(mc_stats["initial_mode"] or "N/A"))
+            s4.metric("Final mode", str(mc_stats["final_mode"] or "N/A"))
+            s5.metric("HI mode time", f"{mc_stats['hi_mode_time']}")
+            if mc_stats["mode_switch_times"]:
+                switch_text = ", ".join(str(t) for t in mc_stats["mode_switch_times"])
+                st.caption(f"Mode switch markers at t = {switch_text}")
 
         png, png_error = schedule_png_bytes(fig)
         if png is None:

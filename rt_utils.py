@@ -448,6 +448,75 @@ def schedule_png_bytes(fig) -> Tuple[Optional[bytes], Optional[str]]:
 def schedule_dataframe(segments: List[Dict[str, object]]) -> pd.DataFrame:
     return pd.DataFrame(segments)
 
+
+def mixed_criticality_stats(segments: List[Dict[str, object]]) -> Dict[str, object]:
+    df = schedule_dataframe(segments)
+    if df.empty or "mode" not in df.columns:
+        return {
+            "enabled": False,
+            "mode_switch_times": [],
+            "mode_switch_count": 0,
+            "first_switch_time": None,
+            "initial_mode": None,
+            "final_mode": None,
+            "lo_mode_time": 0,
+            "hi_mode_time": 0,
+        }
+
+    df["start"] = pd.to_numeric(df["start"], errors="coerce")
+    df["end"] = pd.to_numeric(df["end"], errors="coerce")
+    df = df.dropna(subset=["start", "end", "mode"])
+    if df.empty:
+        return {
+            "enabled": False,
+            "mode_switch_times": [],
+            "mode_switch_count": 0,
+            "first_switch_time": None,
+            "initial_mode": None,
+            "final_mode": None,
+            "lo_mode_time": 0,
+            "hi_mode_time": 0,
+        }
+
+    timeline = (
+        df.sort_values(["start", "end"])
+        .groupby("start", as_index=False)
+        .first()[["start", "mode"]]
+        .sort_values("start")
+    )
+
+    switch_times: List[int] = []
+    previous_mode: Optional[str] = None
+    for _, row in timeline.iterrows():
+        mode = str(row["mode"])
+        t = int(row["start"])
+        if previous_mode is None:
+            previous_mode = mode
+            continue
+        if mode != previous_mode:
+            switch_times.append(t)
+            previous_mode = mode
+
+    mode_time = (
+        df.assign(duration=df["end"] - df["start"])
+        .groupby("mode", as_index=True)["duration"]
+        .sum()
+        .to_dict()
+    )
+
+    initial_mode = str(timeline.iloc[0]["mode"])
+    final_mode = str(timeline.iloc[-1]["mode"])
+    return {
+        "enabled": True,
+        "mode_switch_times": switch_times,
+        "mode_switch_count": len(switch_times),
+        "first_switch_time": switch_times[0] if switch_times else None,
+        "initial_mode": initial_mode,
+        "final_mode": final_mode,
+        "lo_mode_time": int(mode_time.get("LO", 0)),
+        "hi_mode_time": int(mode_time.get("HI", 0)),
+    }
+
 def schedule_figure(
     segments: List[Dict[str, object]],
     title: str,
@@ -486,6 +555,8 @@ def schedule_figure(
         "release",
         "remaining",
     ]
+    if "mode" in df.columns:
+        hover_fields.insert(3, "mode")
     if "criticality" in df.columns:
         hover_fields.insert(3, "criticality")
     if "processor" in df.columns:
@@ -494,6 +565,7 @@ def schedule_figure(
         "job": "Job",
         "phase": "Phase",
         "resource": "Resource",
+        "mode": "Mode",
         "criticality": "Criticality",
         "processor": "Processor",
         "duration": "Duration",
@@ -600,11 +672,40 @@ def schedule_figure(
         }
         for lane in category_order
     ]
+    mc_stats = mixed_criticality_stats(segments)
+    mode_switch_shapes = [
+        {
+            "type": "line",
+            "xref": "x",
+            "x0": t,
+            "x1": t,
+            "yref": "paper",
+            "y0": 0,
+            "y1": 1,
+            "line": {"color": "#d62728", "width": 2, "dash": "dash"},
+            "layer": "above",
+        }
+        for t in mc_stats["mode_switch_times"]
+    ]
+    mode_switch_annotations = [
+        {
+            "x": t,
+            "y": 1.02,
+            "xref": "x",
+            "yref": "paper",
+            "text": "LO->HI",
+            "showarrow": False,
+            "font": {"size": 11, "color": "#d62728"},
+            "xanchor": "left",
+        }
+        for t in mc_stats["mode_switch_times"]
+    ]
     fig.update_layout(
         height=420,
         legend_title_text="Task",
         barmode="overlay",
-        shapes=line_shapes,
+        shapes=line_shapes + mode_switch_shapes,
+        annotations=mode_switch_annotations,
         plot_bgcolor="white",
     )
     fig.update_xaxes(type="linear")
