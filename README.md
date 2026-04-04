@@ -11,6 +11,9 @@ Brief implementations of real-time scheduling algorithms with accompanying plots
 - Added a dedicated Slack Stealing page with sidebar controls for periodic EDF tasks and aperiodic jobs.
 - Slack Stealing now includes a stats panel with KPI metrics and per-aperiodic-job outcomes.
 - Legacy flat algorithm pages were archived under `legacy_pages/` to keep the main sidebar focused.
+- Added mixed-criticality support in Algorithm Explorer with static and adaptive modes.
+- Task sets can now include criticality labels (`low/medium/high` or `A..Z`) and per-task `C-LO` / `C-HI` budgets.
+- Adaptive mixed-criticality mode now performs an explicit LO->HI mode switch and drops low-criticality jobs after switch.
 
 ## Dashboard
 The Streamlit dashboard lets you build custom task sets, check schedulability tests,
@@ -48,6 +51,16 @@ Expected behavior:
 - Aperiodic jobs run in gaps where no periodic job is ready.
 - AP1 starts shortly after release when the first idle window appears.
 - AP2 is served in a later slack window after periodic demand is cleared.
+
+### Mixed-Criticality (SMC/AMC)
+- Enable **Include criticality** in Algorithm Explorer.
+- Choose a scale:
+	- `Low/Medium/High`
+	- `A-Z`
+- Choose a mode:
+	- `static`: mixed-criticality priorities/budgets are applied without mode switch.
+	- `adaptive`: starts in LO mode and switches to HI mode when a HI-criticality job exceeds `C-LO`; low-criticality jobs are then dropped.
+- Configure default `C-LO` and `C-HI` from the sidebar and fine-tune per task in the table.
 
 Live app: https://real-time.streamlit.app/
 
