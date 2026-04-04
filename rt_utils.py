@@ -16,6 +16,9 @@ class TaskSpec:
     computation: int
     deadline: int
     resources: Dict[str, int] = field(default_factory=dict)
+    criticality: str = ""
+    wcet_lo: Optional[int] = None
+    wcet_hi: Optional[int] = None
 
     @property
     def cpu_only_time(self) -> int:
@@ -265,6 +268,8 @@ def compute_hyperperiod(periods: List[int]) -> int:
 
 def build_task_dataframe(tasks: List[TaskSpec], resource_names: List[str]) -> pd.DataFrame:
     rows = []
+    include_crit = any(bool(task.criticality) for task in tasks)
+    include_wcet = any(task.wcet_lo is not None or task.wcet_hi is not None for task in tasks)
     for task in tasks:
         row = {
             "task_id": task.task_id,
@@ -273,10 +278,161 @@ def build_task_dataframe(tasks: List[TaskSpec], resource_names: List[str]) -> pd
             "deadline": task.deadline,
             "computation": task.computation,
         }
+        if include_crit:
+            row["criticality"] = task.criticality
+        if include_wcet:
+            row["wcet_lo"] = task.wcet_lo if task.wcet_lo is not None else task.computation
+            hi_default = task.wcet_lo if task.wcet_lo is not None else task.computation
+            row["wcet_hi"] = task.wcet_hi if task.wcet_hi is not None else hi_default
         for res in resource_names:
             row[f"resource_{res}"] = task.resources.get(res, 0)
         rows.append(row)
     return pd.DataFrame(rows)
+
+
+def _criticality_rank(label: str) -> int:
+    value = (label or "").strip().lower()
+    if not value:
+        return 0
+
+    word_map = {
+        "low": 1,
+        "medium": 2,
+        "med": 2,
+        "high": 3,
+        "critical": 4,
+    }
+    if value in word_map:
+        return word_map[value]
+
+    if value.isdigit():
+        return int(value)
+
+    if len(value) == 1 and "a" <= value <= "z":
+        return ord(value) - ord("a") + 1
+
+    return 0
+
+
+def _task_wcet_budgets(task: TaskSpec, is_hi_class: bool) -> Tuple[int, int]:
+    c_lo = int(task.wcet_lo if task.wcet_lo is not None else task.computation)
+    c_lo = max(c_lo, 1)
+    c_hi_raw = int(task.wcet_hi if task.wcet_hi is not None else c_lo)
+    c_hi = max(c_hi_raw, c_lo)
+    if not is_hi_class:
+        c_hi = c_lo
+    return c_lo, c_hi
+
+
+def simulate_mixed_criticality_uniprocessor(
+    tasks: List[TaskSpec],
+    horizon: int,
+    algorithm: str,
+    mixed_criticality_mode: str,
+    adaptive_threshold: str,
+) -> List[Dict[str, object]]:
+    threshold_rank = _criticality_rank(adaptive_threshold)
+    if threshold_rank <= 0:
+        threshold_rank = 1
+
+    def is_hi_task(task: TaskSpec) -> bool:
+        return _criticality_rank(task.criticality) >= threshold_rank
+
+    def priority_key(job: Dict[str, object]) -> Tuple[int, int, int, int]:
+        task = job["task"]
+        if algorithm == "RM":
+            base = int(task.period)
+        elif algorithm == "DM":
+            base = int(task.deadline)
+        else:
+            base = int(job["absolute_deadline"])
+        crit_rank = int(job["criticality_rank"])
+        return (base, -crit_rank, int(job["release_time"]), int(task.task_id))
+
+    mode = "LO"
+    next_job_number: Dict[int, int] = {task.task_id: 0 for task in tasks}
+    ready: List[Dict[str, object]] = []
+    segments: List[Dict[str, object]] = []
+
+    for time in range(horizon):
+        for task in tasks:
+            if time < task.phase:
+                continue
+            if (time - task.phase) % task.period != 0:
+                continue
+
+            hi_class = is_hi_task(task)
+            if mode == "HI" and not hi_class and mixed_criticality_mode == "adaptive":
+                continue
+
+            c_lo, c_hi = _task_wcet_budgets(task, hi_class)
+            budget = c_hi if hi_class else c_lo
+
+            job_number = next_job_number[task.task_id]
+            next_job_number[task.task_id] = job_number + 1
+            ready.append(
+                {
+                    "task": task,
+                    "job_number": job_number,
+                    "release_time": time,
+                    "absolute_deadline": time + task.deadline,
+                    "remaining": budget,
+                    "executed": 0,
+                    "c_lo": c_lo,
+                    "c_hi": c_hi,
+                    "is_hi": hi_class,
+                    "criticality_rank": _criticality_rank(task.criticality),
+                }
+            )
+
+        if not ready:
+            continue
+
+        candidates = ready
+        if mode == "HI" and mixed_criticality_mode == "adaptive":
+            candidates = [job for job in ready if bool(job["is_hi"])]
+            if not candidates:
+                continue
+
+        current = sorted(candidates, key=priority_key)[0]
+        ready.remove(current)
+
+        current["remaining"] = int(current["remaining"]) - 1
+        current["executed"] = int(current["executed"]) + 1
+
+        task = current["task"]
+        segments.append(
+            {
+                "start": time,
+                "end": time + 1,
+                "lane": f"Task {task.task_id}",
+                "task": f"T{task.task_id}",
+                "job": f"{task.task_id}.{current['job_number']}",
+                "phase": "CPU",
+                "resource": "-",
+                "criticality": task.criticality or "-",
+                "mode": mode,
+                "duration": 1,
+                "release": int(current["release_time"]),
+                "deadline": int(current["absolute_deadline"]),
+                "remaining": int(current["remaining"]),
+            }
+        )
+
+        if (
+            mixed_criticality_mode == "adaptive"
+            and mode == "LO"
+            and bool(current["is_hi"])
+            and int(current["executed"]) >= int(current["c_lo"])
+            and int(current["remaining"]) > 0
+        ):
+            mode = "HI"
+            ready = [job for job in ready if bool(job["is_hi"])]
+
+        if int(current["remaining"]) > 0:
+            ready.append(current)
+
+    return segments
 
 def task_csv_bytes(df: pd.DataFrame) -> bytes:
     buf = io.StringIO()
@@ -330,12 +486,15 @@ def schedule_figure(
         "release",
         "remaining",
     ]
+    if "criticality" in df.columns:
+        hover_fields.insert(3, "criticality")
     if "processor" in df.columns:
         hover_fields.insert(3, "processor")
     hover_labels = {
         "job": "Job",
         "phase": "Phase",
         "resource": "Resource",
+        "criticality": "Criticality",
         "processor": "Processor",
         "duration": "Duration",
         "start": "Start",
@@ -537,7 +696,18 @@ def simulate_uniprocessor(
     algorithm: str,
     protocol: str,
     resource_order: str,
+    mixed_criticality_mode: str = "none",
+    adaptive_threshold: str = "high",
 ) -> List[Dict[str, object]]:
+    if mixed_criticality_mode in {"static", "adaptive"}:
+        return simulate_mixed_criticality_uniprocessor(
+            tasks,
+            horizon,
+            algorithm,
+            mixed_criticality_mode,
+            adaptive_threshold,
+        )
+
     jobs = generate_jobs(tasks, horizon, resource_order)
     resource_names = sorted({res for task in tasks for res in task.resources})
     resource_holders = {res: None for res in resource_names}
@@ -546,22 +716,50 @@ def simulate_uniprocessor(
     ready: List[JobState] = []
     current: Optional[JobState] = None
     segments: List[Dict[str, object]] = []
+    hi_mode = False
+    threshold_rank = _criticality_rank(adaptive_threshold)
+
+    def job_rank(job: JobState) -> int:
+        return _criticality_rank(job.task.criticality)
+
+    def should_keep_in_hi_mode(job: JobState) -> bool:
+        return job_rank(job) >= threshold_rank
+
+    def is_overload_risk(time_now: int) -> bool:
+        if mixed_criticality_mode != "adaptive" or threshold_rank <= 0:
+            return False
+        active = ready.copy()
+        if current is not None:
+            active.append(current)
+        for job in active:
+            if job_rank(job) < threshold_rank:
+                continue
+            remaining = job.remaining_cpu + sum(job.remaining_resources.values())
+            laxity = job.absolute_deadline - time_now - remaining
+            if laxity <= 0:
+                return True
+        return False
 
     def select_job() -> Optional[JobState]:
         if not ready:
             return None
+        candidate_jobs = ready
+        if hi_mode and threshold_rank > 0:
+            candidate_jobs = [job for job in ready if should_keep_in_hi_mode(job)]
+            if not candidate_jobs:
+                return None
         if protocol == "PCP":
             sys_ceiling = _system_ceiling(resource_holders, resource_ceilings)
             eligible = [
                 job
-                for job in ready
+                for job in candidate_jobs
                 if job.holding_resource is not None
                 or _priority_value(algorithm, job) < sys_ceiling
             ]
             if not eligible:
                 return None
-            return sorted(eligible, key=lambda j: _priority_value(algorithm, j))[0]
-        return sorted(ready, key=lambda j: _priority_value(algorithm, j))[0]
+            return sorted(eligible, key=lambda j: (_priority_value(algorithm, j), -job_rank(j), j.release_time))[0]
+        return sorted(candidate_jobs, key=lambda j: (_priority_value(algorithm, j), -job_rank(j), j.release_time))[0]
 
     def apply_pip() -> None:
         if protocol != "PIP":
@@ -589,8 +787,17 @@ def simulate_uniprocessor(
     job_index = 0
     for time in range(horizon):
         while job_index < len(jobs) and jobs[job_index][0] == time:
-            ready.append(jobs[job_index][1])
+            released_job = jobs[job_index][1]
+            if not (hi_mode and threshold_rank > 0 and not should_keep_in_hi_mode(released_job)):
+                ready.append(released_job)
             job_index += 1
+
+        if not hi_mode and is_overload_risk(time):
+            hi_mode = True
+            if threshold_rank > 0:
+                ready = [job for job in ready if should_keep_in_hi_mode(job)]
+                if current is not None and not should_keep_in_hi_mode(current):
+                    current = None
 
         if current is not None and not current.is_complete:
             if protocol == "NPP" and current.non_preemptive:
@@ -636,6 +843,7 @@ def simulate_uniprocessor(
                                 "job": current.job_id,
                                 "phase": "Blocked",
                                 "resource": resource,
+                                "criticality": current.task.criticality or "-",
                                 "duration": 1,
                                 "release": current.release_time,
                                 "deadline": current.absolute_deadline,
@@ -660,6 +868,7 @@ def simulate_uniprocessor(
                         "job": current.job_id,
                         "phase": "Blocked",
                         "resource": resource,
+                        "criticality": current.task.criticality or "-",
                         "duration": 1,
                         "release": current.release_time,
                         "deadline": current.absolute_deadline,
@@ -687,6 +896,7 @@ def simulate_uniprocessor(
                 "job": current.job_id,
                 "phase": "CPU" if phase == "cpu" else "Resource",
                 "resource": resource or "-",
+                "criticality": current.task.criticality or "-",
                 "duration": 1,
                 "release": current.release_time,
                 "deadline": current.absolute_deadline,
@@ -733,6 +943,7 @@ def simulate_global_rm(tasks: List[TaskSpec], horizon: int, processors: int) -> 
                     "job": job.job_id,
                     "phase": "CPU",
                     "resource": "-",
+                    "criticality": job.task.criticality or "-",
                     "processor": f"P{proc_id}",
                     "duration": 1,
                     "release": job.release_time,
@@ -775,6 +986,7 @@ def simulate_global_edf(tasks: List[TaskSpec], horizon: int, processors: int) ->
                     "job": job.job_id,
                     "phase": "CPU",
                     "resource": "-",
+                    "criticality": job.task.criticality or "-",
                     "processor": f"P{proc_id}",
                     "duration": 1,
                     "release": job.release_time,
@@ -817,6 +1029,7 @@ def simulate_global_dm(tasks: List[TaskSpec], horizon: int, processors: int) -> 
                     "job": job.job_id,
                     "phase": "CPU",
                     "resource": "-",
+                    "criticality": job.task.criticality or "-",
                     "processor": f"P{proc_id}",
                     "duration": 1,
                     "release": job.release_time,
@@ -877,6 +1090,8 @@ def simulate_partitioned(
     metric: str,
     protocol: str = "None",
     resource_order: str = "CPU then resources",
+    mixed_criticality_mode: str = "none",
+    adaptive_threshold: str = "high",
 ) -> Tuple[List[Dict[str, object]], List[float], bool]:
     assignments, loads, overloaded = partition_tasks(tasks, processors, strategy, metric)
     segments: List[Dict[str, object]] = []
@@ -884,7 +1099,15 @@ def simulate_partitioned(
     for idx, partition in enumerate(assignments, start=1):
         if not partition:
             continue
-        part_segments = simulate_uniprocessor(partition, horizon, algorithm, protocol, resource_order)
+        part_segments = simulate_uniprocessor(
+            partition,
+            horizon,
+            algorithm,
+            protocol,
+            resource_order,
+            mixed_criticality_mode=mixed_criticality_mode,
+            adaptive_threshold=adaptive_threshold,
+        )
         for segment in part_segments:
             segment["processor"] = f"P{idx}"
         segments.extend(part_segments)

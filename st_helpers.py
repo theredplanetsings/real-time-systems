@@ -42,6 +42,12 @@ def render_task_inputs(
     default_phase: int = 0,
     default_deadline: Optional[int] = None,
     default_resource_time: int = 0,
+    include_criticality: bool = False,
+    criticality_choices: Optional[List[str]] = None,
+    default_criticality: str = "",
+    include_wcet: bool = False,
+    default_wcet_lo: Optional[int] = None,
+    default_wcet_hi: Optional[int] = None,
 ) -> List[TaskSpec]:
     columns = ["task_id"]
     if include_phase:
@@ -52,6 +58,10 @@ def render_task_inputs(
         columns.append("computation")
     if include_deadline:
         columns.append("deadline")
+    if include_criticality:
+        columns.append("criticality")
+    if include_wcet:
+        columns.extend(["wcet_lo", "wcet_hi"])
     if include_resources:
         columns.extend([f"resource_{res}" for res in resource_names])
 
@@ -66,6 +76,13 @@ def render_task_inputs(
             row["computation"] = default_computation
         if include_deadline:
             row["deadline"] = default_deadline if default_deadline is not None else default_period
+        if include_criticality:
+            row["criticality"] = default_criticality
+        if include_wcet:
+            wcet_lo = default_wcet_lo if default_wcet_lo is not None else default_computation
+            wcet_hi = default_wcet_hi if default_wcet_hi is not None else wcet_lo
+            row["wcet_lo"] = wcet_lo
+            row["wcet_hi"] = max(wcet_hi, wcet_lo)
         if include_resources:
             for res in resource_names:
                 row[f"resource_{res}"] = default_resource_time
@@ -87,6 +104,15 @@ def render_task_inputs(
     else:
         df = edited
 
+    if include_criticality and criticality_choices:
+        allowed = {str(choice) for choice in criticality_choices}
+        if "criticality" in df.columns:
+            crit_series = df["criticality"]
+        else:
+            crit_series = pd.Series([default_criticality] * len(df), index=df.index)
+        df["criticality"] = crit_series.astype(str).str.strip()
+        df["criticality"] = df["criticality"].where(df["criticality"].isin(allowed), default_criticality)
+
     rows: List[TaskSpec] = []
     for _, row in df.iterrows():
         task_id = int(row.get("task_id", 0))
@@ -98,7 +124,15 @@ def render_task_inputs(
         if include_resources:
             for res in resource_names:
                 resources[res] = int(row.get(f"resource_{res}", 0))
-        rows.append(TaskSpec(task_id, phase, period, computation, deadline, resources))
+        criticality = str(row.get("criticality", "")).strip() if include_criticality else ""
+        wcet_lo = int(row.get("wcet_lo", computation)) if include_wcet else None
+        wcet_lo = max(wcet_lo, 1) if wcet_lo is not None else None
+        wcet_hi = int(row.get("wcet_hi", wcet_lo if wcet_lo is not None else computation)) if include_wcet else None
+        if wcet_lo is not None and wcet_hi is not None and wcet_hi < wcet_lo:
+            wcet_hi = wcet_lo
+        if include_wcet and wcet_lo is not None:
+            computation = wcet_lo
+        rows.append(TaskSpec(task_id, phase, period, computation, deadline, resources, criticality, wcet_lo, wcet_hi))
 
     return rows
 
@@ -202,6 +236,24 @@ def render_algorithm_workbench(
     include_period = st.sidebar.checkbox("Include period", value=True)
     include_computation = st.sidebar.checkbox("Include computation", value=True)
     include_deadline = st.sidebar.checkbox("Include deadline", value=family in {"EDF", "EDD", "DM"})
+    include_criticality = st.sidebar.checkbox("Include criticality", value=False)
+    mixed_mode = "none"
+    criticality_scale = "Low/Medium/High"
+    criticality_choices: List[str] = []
+    default_criticality = ""
+    adaptive_threshold = "high"
+
+    if include_criticality:
+        mixed_mode = st.sidebar.selectbox(
+            "Mixed-criticality mode",
+            ["static", "adaptive"],
+            index=0,
+        )
+        criticality_scale = st.sidebar.selectbox(
+            "Criticality scale",
+            ["Low/Medium/High", "A-Z"],
+            index=0,
+        )
 
     include_resources = st.sidebar.checkbox("Include resources", value=False)
     resource_order = "CPU then resources"
@@ -211,6 +263,8 @@ def render_algorithm_workbench(
     default_computation = 2
     default_deadline = 10
     default_resource_time = 0
+    default_wcet_lo = default_computation
+    default_wcet_hi = default_computation
 
     st.sidebar.subheader("Default Values")
     if include_phase:
@@ -227,6 +281,8 @@ def render_algorithm_workbench(
         default_computation = int(
             st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
         )
+        default_wcet_lo = default_computation
+        default_wcet_hi = default_computation
 
     if include_deadline:
         default_deadline = int(
@@ -247,6 +303,46 @@ def render_algorithm_workbench(
             st.sidebar.number_input("Default resource time", min_value=0, max_value=50, value=0, step=1)
         )
         resource_names = [chr(ord("A") + i) for i in range(resource_count)]
+
+    if include_criticality:
+        if criticality_scale == "Low/Medium/High":
+            criticality_choices = ["low", "medium", "high"]
+            default_criticality = st.sidebar.selectbox("Default criticality", criticality_choices, index=1)
+            adaptive_threshold = st.sidebar.selectbox(
+                "Adaptive threshold",
+                criticality_choices,
+                index=2,
+                disabled=(mixed_mode != "adaptive"),
+            )
+        else:
+            criticality_choices = [chr(ord("A") + i) for i in range(26)]
+            default_criticality = st.sidebar.selectbox("Default criticality", criticality_choices, index=0)
+            adaptive_threshold = st.sidebar.selectbox(
+                "Adaptive threshold",
+                criticality_choices,
+                index=12,
+                disabled=(mixed_mode != "adaptive"),
+            )
+
+        st.sidebar.subheader("Mixed-Criticality Budgets")
+        default_wcet_lo = int(
+            st.sidebar.number_input(
+                "Default C-LO",
+                min_value=1,
+                max_value=200,
+                value=int(default_computation),
+                step=1,
+            )
+        )
+        default_wcet_hi = int(
+            st.sidebar.number_input(
+                "Default C-HI",
+                min_value=default_wcet_lo,
+                max_value=400,
+                value=max(default_wcet_lo, int(default_computation)),
+                step=1,
+            )
+        )
 
     if include_resources and mode in {"uniprocessor", "partitioned"}:
         st.sidebar.subheader("Resource Protocol")
@@ -281,6 +377,12 @@ def render_algorithm_workbench(
         default_phase=default_phase,
         default_deadline=default_deadline,
         default_resource_time=default_resource_time,
+        include_criticality=include_criticality,
+        criticality_choices=criticality_choices,
+        default_criticality=default_criticality,
+        include_wcet=include_criticality,
+        default_wcet_lo=default_wcet_lo,
+        default_wcet_hi=default_wcet_hi,
     )
 
     st.subheader("Schedulability")
@@ -308,7 +410,15 @@ def render_algorithm_workbench(
         overloaded = False
 
         if mode == "uniprocessor":
-            segments = simulate_uniprocessor(rows, int(range_end), family, protocol, resource_order)
+            segments = simulate_uniprocessor(
+                rows,
+                int(range_end),
+                family,
+                protocol,
+                resource_order,
+                mixed_criticality_mode=mixed_mode if include_criticality else "none",
+                adaptive_threshold=adaptive_threshold,
+            )
         elif mode == "global":
             global_rows = rows
             if include_resources:
@@ -321,6 +431,9 @@ def render_algorithm_workbench(
                         task.computation,
                         task.deadline,
                         {},
+                        task.criticality,
+                        task.wcet_lo,
+                        task.wcet_hi,
                     )
                     for task in rows
                 ]
@@ -344,6 +457,8 @@ def render_algorithm_workbench(
                 metric,
                 protocol,
                 resource_order,
+                mixed_criticality_mode=mixed_mode if include_criticality else "none",
+                adaptive_threshold=adaptive_threshold,
             )
 
         st.caption(f"Segments generated: {len(segments)}")
