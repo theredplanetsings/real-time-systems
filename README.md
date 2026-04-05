@@ -2,6 +2,8 @@
 Brief implementations of real-time scheduling algorithms with accompanying plots and a Streamlit dashboard.
 
 ## Recent Updates
+- Compare Mode now includes Cyclic Executive with automatic frame-size selection per task set.
+- Added a mixed-workload analysis page that compares baseline periodic EDF against slack stealing.
 - Shared task-input validation now clamps unsafe period, computation, deadline, phase, and resource values before they reach the schedulers.
 - Streamlit navigation is now Explorer-first: choose a family (EDF, EDD, RM, DM), then choose a variant (Uniprocessor, Global, Partitioned).
 - Sidebar task-set controls are dynamic: enabling a parameter reveals its default-value control.
@@ -26,6 +28,7 @@ exported as PNG, and task sets as CSV.
 - `pages/01_Task_Set_Builder.py`: Task-set authoring and CSV export
 - `pages/02_Compare_Mode.py`: Compare multiple algorithms across shared or unique task sets
 - `pages/06_Cyclic_Executive.py`, `pages/10_Time_Demand.py`, `pages/11_Priority_Inversion.py`, `pages/15_Slack_Stealing.py`: Specialized analysis pages
+- `pages/16_Mixed_Workload_Analysis.py`: Baseline EDF vs slack-stealing comparison for periodic and aperiodic workloads
 
 ### Slack Stealing page
 - `pages/15_Slack_Stealing.py` demonstrates idle-time slack reclamation.
