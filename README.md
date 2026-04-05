@@ -1,60 +1,33 @@
 # Real-Time Systems
-Brief implementations of real-time scheduling algorithms with accompanying plots and a Streamlit dashboard.
-
-## Recent Updates
-- Compare Mode now includes Cyclic Executive with automatic frame-size selection per task set.
-- Added a mixed-workload analysis page that compares baseline periodic EDF against slack stealing.
-- Shared task-input validation now clamps unsafe period, computation, deadline, phase, and resource values before they reach the schedulers.
-- Streamlit navigation is now Explorer-first: choose a family (EDF, EDD, RM, DM), then choose a variant (Uniprocessor, Global, Partitioned).
-- Sidebar task-set controls are dynamic: enabling a parameter reveals its default-value control.
-- Resource-aware protocol options (None, PIP, PCP, NPP) are available wherever resource simulation applies.
-- Schedule plots now reuse a cached figure helper in the interactive pages, which makes reruns feel faster.
-- PNG export now surfaces clearer failures instead of silently dropping downloads when image export is unavailable.
-- Compare Mode now uses the shared algorithm registry from the core utilities, keeping the page definitions aligned.
-- Added a dedicated Slack Stealing page with sidebar controls for periodic EDF tasks and aperiodic jobs.
-- Slack Stealing now includes a stats panel with KPI metrics and per-aperiodic-job outcomes.
-- Legacy flat algorithm pages were archived under `legacy_pages/` to keep the main sidebar focused.
-- Added mixed-criticality support in Algorithm Explorer with static and adaptive modes.
-- Task sets can now include criticality labels (`low/medium/high` or `A..Z`) and per-task `C-LO` / `C-HI` budgets.
-- Adaptive mixed-criticality mode now performs an explicit LO->HI mode switch and drops low-criticality jobs after switch.
+Real-time scheduling examples, analysis pages, and interactive plots in a Streamlit dashboard.
 
 ## Dashboard
-The Streamlit dashboard lets you build custom task sets, check schedulability tests,
-and generate schedules with hoverable job and resource details. Schedules can be
-exported as PNG, and task sets as CSV.
+The app supports task-set authoring, schedulability checks, schedule generation, and CSV/PNG export. It also covers several non-obvious workflow pages beyond the main explorer.
 
-### Navigation
-- `pages/00_Algorithm_Explorer.py`: Main workflow for scheduling experiments
-- `pages/01_Task_Set_Builder.py`: Task-set authoring and CSV export
-- `pages/02_Compare_Mode.py`: Compare multiple algorithms across shared or unique task sets
-- `pages/06_Cyclic_Executive.py`, `pages/10_Time_Demand.py`, `pages/11_Priority_Inversion.py`, `pages/15_Slack_Stealing.py`: Specialized analysis pages
-- `pages/16_Mixed_Workload_Analysis.py`: Baseline EDF vs slack-stealing comparison for periodic and aperiodic workloads
+### Main Pages
+- `pages/00_Algorithm_Explorer.py`: Primary workflow for EDF, EDD, RM, and DM variants.
+- `pages/01_Task_Set_Builder.py`: Standalone task-set authoring and CSV export.
+- `pages/02_Compare_Mode.py`: Side-by-side comparison across multiple algorithms and task sets.
+- `pages/16_Mixed_Workload_Analysis.py`: Periodic EDF baseline versus slack stealing for mixed periodic/aperiodic workloads.
 
-### Slack Stealing page
-- `pages/15_Slack_Stealing.py` demonstrates idle-time slack reclamation.
-- Periodic jobs are scheduled with EDF first.
-- Ready aperiodic jobs execute only when no periodic job is runnable.
-- The page supports CSV export for periodic and aperiodic inputs, plus PNG schedule export.
-- A Slack Stats panel reports total slack used, completion ratio, response/waiting times, and deadline misses.
-- A detailed table shows per-aperiodic-job execution and completion outcomes.
+### Specialized Analyses
+- `pages/06_Cyclic_Executive.py`: Frame-size search and cyclic executive schedule generation.
+- `pages/10_Time_Demand.py`: Time-demand analysis for a selected task.
+- `pages/11_Priority_Inversion.py`: Resource-sharing demo with protocol options.
+- `pages/15_Slack_Stealing.py`: Idle-time reclamation for periodic EDF plus aperiodic jobs.
 
-### Slack Stealing walkthrough
-Use this quick setup to see slack reclamation behavior:
+### Key Behaviors
+- Shared validation clamps unsafe phase, period, computation, deadline, resource, and mixed-criticality values before simulation.
+- Algorithm Explorer supports mixed-criticality task sets with static or adaptive mode.
+- Compare Mode uses the shared algorithm registry, cached plots, and clearer PNG export handling.
+- Resource-aware protocols are available where they apply: None, PIP, PCP, and NPP.
+- Legacy flat pages remain archived under `legacy_pages/`.
 
-- Periodic tasks
-	- T1: phase 0, period 5, computation 1, deadline 5
-	- T2: phase 0, period 10, computation 2, deadline 10
-- Aperiodic jobs
-	- AP1: release 1, computation 2, relative deadline 8
-	- AP2: release 6, computation 1, relative deadline 6
-- Time range
-	- Start 0, End 20, Tick 1
-
-Expected behavior:
-- Periodic EDF jobs run whenever ready.
-- Aperiodic jobs run in gaps where no periodic job is ready.
-- AP1 starts shortly after release when the first idle window appears.
-- AP2 is served in a later slack window after periodic demand is cleared.
+## Recent Updates
+- Added Cyclic Executive support to Compare Mode with automatic frame-size selection.
+- Added mixed-workload analysis for baseline EDF versus slack stealing.
+- Added mixed-criticality support in Algorithm Explorer with static and adaptive modes.
+- Added dynamic sidebar controls, shared validation, cached plot helpers, and clearer PNG export errors.
 
 ### Mixed-Criticality (SMC/AMC)
 - Enable **Include criticality** in Algorithm Explorer.
