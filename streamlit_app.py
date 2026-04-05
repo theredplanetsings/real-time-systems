@@ -12,53 +12,6 @@ st.title("Real-Time Scheduling Dashboard")
 family_count = len(ALGORITHM_FAMILIES)
 variant_count = sum(len(meta.get("variants", {})) for meta in ALGORITHM_FAMILIES.values())
 method_count = len(ALGORITHMS)
-
-st.markdown(
-    """
-This project collects real-time scheduling algorithms and visualisations in a
-single, interactive scheduling dashboard. The dashboard lets you build custom task
-sets, check schedulability tests, and generate schedules with hoverable job and
-resource details. Schedules can be exported as PNG, and task sets as CSV.
-"""
-)
-
-st.subheader("What You Can Explore")
-metrics = st.columns(3)
-metrics[0].metric("Algorithm Families", family_count)
-metrics[1].metric("Family Variants", variant_count)
-metrics[2].metric("Total Methods", method_count)
-
-st.markdown(
-    f"""
-The dashboard currently includes **{family_count} core scheduling families**
-(EDF, EDD, RM, DM) with **{variant_count} selectable family variants** across
-uniprocessor, global, and partitioned formulations.
-
-In addition, the project contains **{method_count} total implemented methods**,
-including advanced topics such as cyclic executive, time-demand analysis, and
-priority inversion studies.
-"""
-)
-
-st.markdown(
-    """
-**How to run**
-
-```bash
-streamlit run streamlit_app.py
-```
-"""
-)
-
-st.subheader("Available Algorithms")
-
-algorithm_lines = []
-for family, meta in ALGORITHM_FAMILIES.items():
-    variants = meta.get("variants", {})
-    algorithm_lines.append(f"- **{family}**")
-    for variant_name in variants:
-        algorithm_lines.append(f"  - {variant_name}")
-
 special_methods = [
     name
     for name in ALGORITHMS
@@ -77,14 +30,53 @@ special_methods = [
     }
 ]
 
-if special_methods:
-    algorithm_lines.append("- **Specialized**")
-    for name in special_methods:
-        algorithm_lines.append(f"  - {name}")
+st.markdown(
+    """
+This dashboard groups the project’s real-time scheduling experiments into one
+place. Build task sets, compare algorithms, inspect schedules, and export the
+results as PNG or CSV.
+"""
+)
 
-st.markdown("\n".join(algorithm_lines))
+metrics = st.columns(3)
+metrics[0].metric("Families", family_count)
+metrics[1].metric("Variants", variant_count)
+metrics[2].metric("Methods", method_count)
+
+st.markdown(
+    f"""
+Core families: **{family_count}** across EDF, EDD, RM, and DM.
+
+Specialized methods: **{len(special_methods)}** including cyclic
+executive, time-demand analysis, priority inversion, and slack stealing.
+"""
+)
+
+st.markdown(
+    """
+**How to run**
+
+```bash
+streamlit run streamlit_app.py
+```
+"""
+)
+
+st.subheader("Algorithms")
+
+family_cards = st.columns(2)
+for index, (family, meta) in enumerate(ALGORITHM_FAMILIES.items()):
+    with family_cards[index % 2]:
+        variants = ", ".join(meta.get("variants", {}).keys())
+        st.markdown(f"**{family}**")
+        st.caption(meta["label"])
+        st.write(variants)
+
+if special_methods:
+    st.markdown("**Specialized analyses**")
+    st.write(" · ".join(special_methods))
 
 st.info(
-    "Use Algorithm Explorer in the sidebar to pick a family first, then pick a "
-    "variant (Uniprocessor, Global, or Partitioned) and configure task parameters."
+    "Start with Algorithm Explorer in the sidebar for the main workflow, or use the"
+    " specialized pages for cyclic executive, time demand, priority inversion, and slack stealing."
 )
