@@ -23,7 +23,8 @@ include_period = st.checkbox("Include period", value=True)
 include_computation = st.checkbox("Include computation", value=True)
 include_deadline = st.checkbox("Include deadline", value=True)
 include_resources = st.checkbox("Include resources", value=False)
-resource_order = st.selectbox("Execution order", ["CPU then resources", "Resources then CPU"])
+
+st.caption("This page only builds task sets. Execution order is configured on the analysis pages that use it.")
 
 default_period = st.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
 default_computation = st.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
