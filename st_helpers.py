@@ -154,6 +154,73 @@ def render_task_inputs(
         df["wcet_lo"] = wcet_lo_series.astype(int)
         df["wcet_hi"] = wcet_hi_series.astype(int)
 
+    if include_phase:
+        if "phase" in df.columns:
+            phase_series = pd.to_numeric(df["phase"], errors="coerce")
+        else:
+            phase_series = pd.Series([default_phase] * len(df), index=df.index)
+        phase_series = phase_series.fillna(default_phase)
+        negative_phase = phase_series < 0
+        if bool(negative_phase.any()):
+            validation_messages.append(
+                f"Raised phase to 0 for {int(negative_phase.sum())} row(s)."
+            )
+        df["phase"] = phase_series.clip(lower=0).astype(int)
+
+    if include_period:
+        if "period" in df.columns:
+            period_series = pd.to_numeric(df["period"], errors="coerce")
+        else:
+            period_series = pd.Series([default_period] * len(df), index=df.index)
+        period_series = period_series.fillna(default_period)
+        invalid_period = period_series < 1
+        if bool(invalid_period.any()):
+            validation_messages.append(
+                f"Raised period to 1 for {int(invalid_period.sum())} row(s)."
+            )
+        df["period"] = period_series.clip(lower=1).astype(int)
+
+    if include_computation:
+        if "computation" in df.columns:
+            computation_series = pd.to_numeric(df["computation"], errors="coerce")
+        else:
+            computation_series = pd.Series([default_computation] * len(df), index=df.index)
+        computation_series = computation_series.fillna(default_computation)
+        invalid_computation = computation_series < 1
+        if bool(invalid_computation.any()):
+            validation_messages.append(
+                f"Raised computation to 1 for {int(invalid_computation.sum())} row(s)."
+            )
+        df["computation"] = computation_series.clip(lower=1).astype(int)
+
+    if include_deadline:
+        if "deadline" in df.columns:
+            deadline_series = pd.to_numeric(df["deadline"], errors="coerce")
+        else:
+            deadline_series = pd.Series([default_deadline or default_period] * len(df), index=df.index)
+        deadline_series = deadline_series.fillna(default_deadline or default_period)
+        invalid_deadline = deadline_series < 1
+        if bool(invalid_deadline.any()):
+            validation_messages.append(
+                f"Raised deadline to 1 for {int(invalid_deadline.sum())} row(s)."
+            )
+        df["deadline"] = deadline_series.clip(lower=1).astype(int)
+
+    if include_resources:
+        for res in resource_names:
+            column_name = f"resource_{res}"
+            if column_name in df.columns:
+                resource_series = pd.to_numeric(df[column_name], errors="coerce")
+            else:
+                resource_series = pd.Series([default_resource_time] * len(df), index=df.index)
+            resource_series = resource_series.fillna(default_resource_time)
+            invalid_resource = resource_series < 0
+            if bool(invalid_resource.any()):
+                validation_messages.append(
+                    f"Raised resource time for {res} to 0 in {int(invalid_resource.sum())} row(s)."
+                )
+            df[column_name] = resource_series.clip(lower=0).astype(int)
+
     for msg in validation_messages:
         st.warning(msg)
 
