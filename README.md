@@ -2,6 +2,7 @@
 Brief implementations of real-time scheduling algorithms with accompanying plots and a Streamlit dashboard.
 
 ## Recent Updates
+- Shared task-input validation now clamps unsafe period, computation, deadline, phase, and resource values before they reach the schedulers.
 - Streamlit navigation is now Explorer-first: choose a family (EDF, EDD, RM, DM), then choose a variant (Uniprocessor, Global, Partitioned).
 - Sidebar task-set controls are dynamic: enabling a parameter reveals its default-value control.
 - Resource-aware protocol options (None, PIP, PCP, NPP) are available wherever resource simulation applies.
