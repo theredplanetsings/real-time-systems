@@ -5,6 +5,8 @@ from rt_utils import (
     COMPARE_ALGORITHMS,
     TaskSpec,
     build_task_dataframe,
+    cyclic_executive_frames,
+    cyclic_executive_schedule,
     schedule_png_bytes,
     simulate_global_dm,
     simulate_global_edf,
@@ -72,6 +74,14 @@ def _run_algorithm(
         else:
             segments = simulate_global_dm(cpu_only_tasks, horizon, processors)
         return segments, [], False
+
+    if mode == "cyclic":
+        hyperperiod, valid_frames = cyclic_executive_frames(tasks)
+        if not valid_frames:
+            return [], [], False
+        frame = valid_frames[0]
+        segments = cyclic_executive_schedule(tasks, frame)
+        return segments, [float(frame)], False
 
     segments, loads, overloaded = simulate_partitioned(
         tasks,
@@ -224,6 +234,9 @@ for index, algorithm in enumerate(selected_algorithms):
                     key=f"compare_processors_{index}",
                 )
             )
+
+        if mode == "cyclic":
+            st.info("Cyclic Executive uses the smallest valid frame size for each task set.")
 
         if mode == "partitioned":
             strategy = st.selectbox(
@@ -487,6 +500,7 @@ if st.button("Run Compare", type="primary"):
                 "Executed Ticks": summary["cpu_or_resource_ticks"],
                 "Processors": int(runtime["processors"]),
                 "Protocol": runtime["protocol"],
+                "Frame Size": f"{result['loads'][0]:.0f}" if runtime["algorithm"] == "Cyclic Executive" and result["loads"] else "",
             }
         )
 
