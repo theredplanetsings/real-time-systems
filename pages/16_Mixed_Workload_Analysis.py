@@ -15,6 +15,17 @@ from rt_utils import (
 st.set_page_config(page_title="Mixed Workload Analysis", layout="wide")
 st.title("Mixed Workload Analysis")
 st.caption("Compare baseline periodic EDF against slack stealing on the same workload.")
+
+with st.expander("How to use this page", expanded=True):
+    st.markdown(
+        """
+        1. Define the periodic task set in the sidebar.
+        2. Add any aperiodic jobs you want to test against slack.
+        3. Run the analysis to compare the periodic EDF baseline with slack stealing.
+        """
+    )
+    st.caption("Use the same horizon for both runs so the schedule and metrics stay aligned.")
+
 st.sidebar.header("Periodic Task Set")
 num_tasks = st.sidebar.number_input("Number of periodic tasks", min_value=1, max_value=12, value=3, step=1)
 include_phase = st.sidebar.checkbox("Include phase", value=True)
@@ -200,7 +211,7 @@ if st.button("Run mixed workload analysis", type="primary"):
                     "Jobs Seen": aperiodic_summary["jobs"],
                     "Jobs Completed": aperiodic_summary["completed"],
                     "Deadline Misses": aperiodic_summary["deadline_misses"],
-                    "Executed Ticks": int(slack_metrics["total_slack_used"]),
+                    "Slack Used": int(slack_metrics["total_slack_used"]),
                 },
             ]
         ),
