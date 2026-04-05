@@ -256,6 +256,7 @@ for index, algorithm in enumerate(selected_algorithms):
 st.subheader("Task Sets")
 all_task_sets: list[list[TaskSpec]] = []
 resource_names_for_task_set: list[list[str]] = []
+task_set_validation_errors: list[tuple[int, list[str]]] = []
 
 for ts_index in range(task_set_count):
     with st.expander(f"Task Set TS{ts_index + 1}", expanded=(ts_index == 0)):
@@ -353,6 +354,7 @@ for ts_index in range(task_set_count):
 
         if invalid_rows:
             st.error("Validation issues in this task set:\n- " + "\n- ".join(invalid_rows))
+            task_set_validation_errors.append((ts_index, invalid_rows))
 
         all_task_sets.append(tasks)
         resource_names_for_task_set.append(resource_names)
@@ -411,6 +413,13 @@ st.session_state["compare_assignment_df"] = save_df
 if st.button("Run Compare", type="primary"):
     if range_end <= range_start:
         st.error("Time range end must be greater than start.")
+        st.stop()
+
+    if task_set_validation_errors:
+        error_lines = []
+        for ts_index, invalid_rows in task_set_validation_errors:
+            error_lines.append(f"TS{ts_index + 1}: " + "; ".join(invalid_rows))
+        st.error("Fix validation issues before running Compare:\n- " + "\n- ".join(error_lines))
         st.stop()
 
     selected_pairs: list[tuple[int, int]] = []
