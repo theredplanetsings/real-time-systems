@@ -104,6 +104,7 @@ COMPARE_ALGORITHMS: Dict[str, Dict[str, str]] = {
     "DM": {"mode": "uniprocessor", "family": "DM"},
     "EDF": {"mode": "uniprocessor", "family": "EDF"},
     "EDD": {"mode": "uniprocessor", "family": "EDD"},
+    "Cyclic Executive": {"mode": "cyclic", "family": "Cyclic Executive"},
     "Global RM": {"mode": "global", "family": "RM"},
     "Global EDF": {"mode": "global", "family": "EDF"},
     "Global DM": {"mode": "global", "family": "DM"},
