@@ -53,14 +53,22 @@ executive, time-demand analysis, priority inversion, and slack stealing.
 )
 
 st.subheader("Quick Start")
-quick_links = st.columns(4)
-with quick_links[0]:
+start_links = st.columns(3)
+with start_links[0]:
+    st.page_link("pages/01_Task_Set_Builder.py", label="Task Set Builder", icon="🧱")
+with start_links[1]:
     st.page_link("pages/00_Algorithm_Explorer.py", label="Algorithm Explorer", icon="🧭")
-with quick_links[1]:
+with start_links[2]:
     st.page_link("pages/02_Compare_Mode.py", label="Compare Mode", icon="⚖️")
-with quick_links[2]:
+
+analysis_links = st.columns(4)
+with analysis_links[0]:
     st.page_link("pages/06_Cyclic_Executive.py", label="Cyclic Executive", icon="🗓️")
-with quick_links[3]:
+with analysis_links[1]:
+    st.page_link("pages/10_Time_Demand.py", label="Time Demand", icon="📈")
+with analysis_links[2]:
+    st.page_link("pages/15_Slack_Stealing.py", label="Slack Stealing", icon="🌙")
+with analysis_links[3]:
     st.page_link("pages/16_Mixed_Workload_Analysis.py", label="Mixed Workload", icon="📋")
 
 st.markdown(
