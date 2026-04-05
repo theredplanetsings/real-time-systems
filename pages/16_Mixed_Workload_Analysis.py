@@ -136,6 +136,15 @@ def _summarize_segments(segments: list[dict[str, object]], horizon: int) -> dict
 
     return {"jobs": int(jobs), "completed": int(len(completions)), "deadline_misses": int(deadline_misses), "ticks": int(ticks)}
 
+
+def _summarize_aperiodic_jobs(stats_df: pd.DataFrame) -> dict[str, int]:
+    if stats_df.empty:
+        return {"jobs": 0, "completed": 0, "deadline_misses": 0}
+
+    completed = int(stats_df["completed"].sum()) if "completed" in stats_df.columns else 0
+    deadline_misses = int(stats_df["deadline_missed"].sum()) if "deadline_missed" in stats_df.columns else 0
+    return {"jobs": int(len(stats_df)), "completed": completed, "deadline_misses": deadline_misses}
+
 if st.button("Run mixed workload analysis", type="primary"):
     if range_end <= range_start:
         st.error("Time range end must be greater than start.")
@@ -162,15 +171,16 @@ if st.button("Run mixed workload analysis", type="primary"):
     slack_segments = simulate_slack_stealing(periodic_rows, aperiodic_defaults, range_end)
     slack_metrics, slack_stats_df = slack_stealing_stats(slack_segments, aperiodic_defaults, range_end)
     baseline_summary = _summarize_segments(baseline_segments, range_end)
-    slack_summary = _summarize_segments(slack_segments, range_end)
+    aperiodic_summary = _summarize_aperiodic_jobs(slack_stats_df)
 
     st.subheader("Comparison Summary")
+    st.caption("Baseline EDF measures the periodic workload; slack-stealing metrics reflect aperiodic jobs reclaimed in idle time.")
     summary_cols = st.columns(6)
     summary_cols[0].metric("Utilisation", f"{utilisation(periodic_rows):.3f}")
     summary_cols[1].metric("Density", f"{density(periodic_rows):.3f}")
-    summary_cols[2].metric("EDF jobs", f"{baseline_summary['completed']}/{baseline_summary['jobs']}")
-    summary_cols[3].metric("Slack jobs", f"{slack_summary['completed']}/{slack_summary['jobs']}")
-    summary_cols[4].metric("Completion ratio", f"{100.0 * slack_metrics['completion_ratio']:.1f}%")
+    summary_cols[2].metric("Periodic EDF", f"{baseline_summary['completed']}/{baseline_summary['jobs']}")
+    summary_cols[3].metric("Aperiodic jobs", f"{aperiodic_summary['completed']}/{aperiodic_summary['jobs']}")
+    summary_cols[4].metric("Aperiodic completion", f"{100.0 * slack_metrics['completion_ratio']:.1f}%")
     summary_cols[5].metric("Slack used", f"{slack_metrics['total_slack_used']:.0f}")
 
     st.dataframe(
@@ -178,6 +188,7 @@ if st.button("Run mixed workload analysis", type="primary"):
             [
                 {
                     "Run": "Baseline EDF",
+                    "Scope": "Periodic jobs",
                     "Jobs Seen": baseline_summary["jobs"],
                     "Jobs Completed": baseline_summary["completed"],
                     "Deadline Misses": baseline_summary["deadline_misses"],
@@ -185,10 +196,11 @@ if st.button("Run mixed workload analysis", type="primary"):
                 },
                 {
                     "Run": "Slack Stealing",
-                    "Jobs Seen": slack_summary["jobs"],
-                    "Jobs Completed": slack_summary["completed"],
-                    "Deadline Misses": slack_summary["deadline_misses"],
-                    "Executed Ticks": slack_summary["ticks"],
+                    "Scope": "Aperiodic jobs",
+                    "Jobs Seen": aperiodic_summary["jobs"],
+                    "Jobs Completed": aperiodic_summary["completed"],
+                    "Deadline Misses": aperiodic_summary["deadline_misses"],
+                    "Executed Ticks": int(slack_metrics["total_slack_used"]),
                 },
             ]
         ),
