@@ -25,6 +25,44 @@ The dashboard home page now includes a styled hero, data-driven navigation cards
 - Resource-aware protocols are available where they apply: None, PIP, PCP, and NPP.
 - Legacy flat pages remain archived under `legacy_pages/`.
 
+## Algorithm Input/Output Examples
+
+These examples use the same canonical task shape used across pages:
+
+```text
+Task = (id, phase, period, computation, deadline)
+```
+
+Example task set:
+
+```text
+T1 = (1, 0, 4, 1, 4)
+T2 = (2, 0, 5, 2, 5)
+T3 = (3, 0, 20, 4, 20)
+```
+
+- EDF:
+	Input: periodic tasks with explicit deadlines.
+	Output: dynamic-priority timeline, deadline-miss report, utilization summary.
+- RM:
+	Input: periodic tasks where fixed priorities come from shorter periods.
+	Output: fixed-priority schedule, response-time intuition via timeline, miss report.
+- DM:
+	Input: periodic tasks where fixed priorities come from shorter relative deadlines.
+	Output: fixed-priority deadline-driven schedule, miss report, protocol-aware resource blocking details when enabled.
+- Cyclic Executive:
+	Input: periodic tasks plus optional frame size (or auto-search).
+	Output: selected feasible frame size and per-frame dispatch table.
+- Time-Demand Analysis:
+	Input: a fixed-priority task set and a selected task under analysis.
+	Output: iterative demand-vs-time table and schedulable/unschedulable verdict for that task.
+- Priority Inversion page:
+	Input: tasks with shared resources and selected protocol (None/PIP/PCP/NPP).
+	Output: protocol effect timeline showing blocking/inheritance/ceiling behavior.
+- Slack Stealing:
+	Input: periodic EDF baseline and aperiodic arrivals.
+	Output: reclaimed slack timeline and aperiodic completion improvements compared with baseline.
+
 ## Recent Updates
 - Refreshed the dashboard home page with data-driven sections and sparkline previews.
 - Added Task Set Builder presets, JSON import/export, seeded generation, hyperperiod warnings, and scenario snapshots.
