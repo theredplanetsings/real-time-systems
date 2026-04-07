@@ -1,3 +1,5 @@
+import json
+
 import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
 from rt_utils import build_task_dataframe, task_csv_bytes, task_json_bytes
@@ -20,6 +22,29 @@ PRESET_TASK_SETS = {
         {"phase": 0, "period": 32, "computation": 5, "deadline": 32},
     ],
 }
+
+
+def _normalize_imported_rows(raw_tasks: object) -> list[dict[str, int]]:
+    if not isinstance(raw_tasks, list):
+        return []
+
+    normalized: list[dict[str, int]] = []
+    for item in raw_tasks:
+        if not isinstance(item, dict):
+            continue
+        period = int(item.get("period", 10))
+        computation = int(item.get("computation", 2))
+        deadline = int(item.get("deadline", period))
+        phase = int(item.get("phase", 0))
+        normalized.append(
+            {
+                "phase": phase,
+                "period": period,
+                "computation": computation,
+                "deadline": deadline,
+            }
+        )
+    return normalized
 
 st.set_page_config(page_title="Task Set Builder", layout="wide")
 
@@ -60,6 +85,22 @@ include_deadline = st.checkbox("Include deadline", value=True)
 include_resources = st.checkbox("Include resources", value=False)
 
 st.caption("This page only builds task sets. Execution order is configured on the analysis pages that use it.")
+
+uploaded_json = st.file_uploader("Import task set JSON", type=["json"])
+if uploaded_json is not None:
+    if st.button("Load JSON"):
+        try:
+            parsed = json.loads(uploaded_json.getvalue().decode("utf-8"))
+            tasks_payload = parsed.get("tasks") if isinstance(parsed, dict) else parsed
+            normalized_rows = _normalize_imported_rows(tasks_payload)
+            if not normalized_rows:
+                st.error("No valid tasks found in JSON.")
+            else:
+                st.session_state["builder_seed_rows"] = normalized_rows
+                st.session_state["builder_num_tasks"] = len(normalized_rows)
+                st.success(f"Loaded {len(normalized_rows)} task(s) from JSON.")
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError, TypeError):
+            st.error("Invalid JSON format.")
 
 default_period = st.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
 default_computation = st.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
