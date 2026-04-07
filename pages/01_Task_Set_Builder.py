@@ -3,7 +3,14 @@ import random
 
 import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
-from rt_utils import build_task_dataframe, compute_hyperperiod, task_csv_bytes, task_json_bytes
+from rt_utils import (
+    build_task_dataframe,
+    compute_hyperperiod,
+    density,
+    task_csv_bytes,
+    task_json_bytes,
+    utilisation,
+)
 
 PRESET_TASK_SETS = {
     "Balanced Trio": [
@@ -182,6 +189,10 @@ rows = render_task_inputs(
 )
 
 st.session_state["builder_seed_rows"] = None
+
+metric_cols = st.columns(2)
+metric_cols[0].metric("Total utilisation", f"{utilisation(rows):.3f}")
+metric_cols[1].metric("Total density", f"{density(rows):.3f}")
 
 if "builder_scenarios" not in st.session_state:
     st.session_state["builder_scenarios"] = {}
