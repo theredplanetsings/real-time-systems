@@ -183,6 +183,37 @@ rows = render_task_inputs(
 
 st.session_state["builder_seed_rows"] = None
 
+if "builder_scenarios" not in st.session_state:
+    st.session_state["builder_scenarios"] = {}
+
+st.subheader("Scenario Snapshots")
+snap_cols = st.columns([2, 1, 1])
+snapshot_name = snap_cols[0].text_input("Snapshot name", value="")
+if snap_cols[1].button("Save snapshot") and snapshot_name.strip():
+    st.session_state["builder_scenarios"][snapshot_name.strip()] = [
+        {
+            "phase": task.phase,
+            "period": task.period,
+            "computation": task.computation,
+            "deadline": task.deadline,
+        }
+        for task in rows
+    ]
+    st.success(f"Saved snapshot '{snapshot_name.strip()}'.")
+
+saved_names = sorted(st.session_state["builder_scenarios"].keys())
+if saved_names:
+    selected_snapshot = snap_cols[2].selectbox("Saved", saved_names)
+    action_cols = st.columns(2)
+    if action_cols[0].button("Load snapshot"):
+        loaded_rows = st.session_state["builder_scenarios"][selected_snapshot]
+        st.session_state["builder_seed_rows"] = loaded_rows
+        st.session_state["builder_num_tasks"] = len(loaded_rows)
+        st.success(f"Loaded snapshot '{selected_snapshot}'.")
+    if action_cols[1].button("Delete snapshot"):
+        del st.session_state["builder_scenarios"][selected_snapshot]
+        st.success(f"Deleted snapshot '{selected_snapshot}'.")
+
 df = build_task_dataframe(rows, resource_names)
 
 periods = [task.period for task in rows if task.period > 0]
