@@ -49,6 +49,7 @@ def render_task_inputs(
     include_wcet: bool = False,
     default_wcet_lo: Optional[int] = None,
     default_wcet_hi: Optional[int] = None,
+    initial_rows: Optional[List[dict]] = None,
 ) -> List[TaskSpec]:
     columns = ["task_id"]
     if include_phase:
@@ -68,25 +69,30 @@ def render_task_inputs(
 
     data = []
     for i in range(num_tasks):
+        seed = initial_rows[i] if initial_rows and i < len(initial_rows) else {}
         row = {"task_id": i + 1}
         if include_phase:
-            row["phase"] = default_phase
+            row["phase"] = int(seed.get("phase", default_phase))
         if include_period:
-            row["period"] = default_period
+            row["period"] = int(seed.get("period", default_period))
         if include_computation:
-            row["computation"] = default_computation
+            row["computation"] = int(seed.get("computation", default_computation))
         if include_deadline:
-            row["deadline"] = default_deadline if default_deadline is not None else default_period
+            row["deadline"] = int(
+                seed.get("deadline", default_deadline if default_deadline is not None else default_period)
+            )
         if include_criticality:
-            row["criticality"] = default_criticality
+            row["criticality"] = str(seed.get("criticality", default_criticality))
         if include_wcet:
             wcet_lo = default_wcet_lo if default_wcet_lo is not None else default_computation
             wcet_hi = default_wcet_hi if default_wcet_hi is not None else wcet_lo
+            wcet_lo = int(seed.get("wcet_lo", wcet_lo))
+            wcet_hi = int(seed.get("wcet_hi", wcet_hi))
             row["wcet_lo"] = wcet_lo
             row["wcet_hi"] = max(wcet_hi, wcet_lo)
         if include_resources:
             for res in resource_names:
-                row[f"resource_{res}"] = default_resource_time
+                row[f"resource_{res}"] = int(seed.get(f"resource_{res}", default_resource_time))
         data.append(row)
 
     height = min(600, 50 + num_tasks * 35)

@@ -2,6 +2,25 @@ import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
 from rt_utils import build_task_dataframe, task_csv_bytes
 
+PRESET_TASK_SETS = {
+    "Balanced Trio": [
+        {"phase": 0, "period": 5, "computation": 1, "deadline": 5},
+        {"phase": 0, "period": 10, "computation": 2, "deadline": 10},
+        {"phase": 0, "period": 20, "computation": 4, "deadline": 20},
+    ],
+    "Tight Deadlines": [
+        {"phase": 0, "period": 6, "computation": 2, "deadline": 4},
+        {"phase": 0, "period": 8, "computation": 2, "deadline": 5},
+        {"phase": 0, "period": 12, "computation": 3, "deadline": 6},
+    ],
+    "Harmonic Four": [
+        {"phase": 0, "period": 4, "computation": 1, "deadline": 4},
+        {"phase": 0, "period": 8, "computation": 2, "deadline": 8},
+        {"phase": 0, "period": 16, "computation": 3, "deadline": 16},
+        {"phase": 0, "period": 32, "computation": 5, "deadline": 32},
+    ],
+}
+
 st.set_page_config(page_title="Task Set Builder", layout="wide")
 
 st.title("Task Set Builder")
@@ -16,7 +35,23 @@ algorithm pages to generate schedules.
 render_sidebar("EDF", show_protocol=False)
 
 st.subheader("Task Set Settings")
-num_tasks = st.number_input("Number of tasks", min_value=1, max_value=12, value=3, step=1)
+if "builder_num_tasks" not in st.session_state:
+    st.session_state["builder_num_tasks"] = 3
+
+preset_col, apply_col = st.columns([3, 1])
+selected_preset = preset_col.selectbox("Preset", ["Custom"] + list(PRESET_TASK_SETS.keys()), index=0)
+if apply_col.button("Load preset") and selected_preset != "Custom":
+    st.session_state["builder_seed_rows"] = PRESET_TASK_SETS[selected_preset]
+    st.session_state["builder_num_tasks"] = len(PRESET_TASK_SETS[selected_preset])
+
+num_tasks = st.number_input(
+    "Number of tasks",
+    min_value=1,
+    max_value=12,
+    value=int(st.session_state["builder_num_tasks"]),
+    step=1,
+    key="builder_num_tasks",
+)
 
 include_phase = st.checkbox("Include phase", value=True)
 include_period = st.checkbox("Include period", value=True)
@@ -47,7 +82,10 @@ rows = render_task_inputs(
     int(default_period),
     int(default_computation),
     key_prefix="builder",
+    initial_rows=st.session_state.get("builder_seed_rows"),
 )
+
+st.session_state["builder_seed_rows"] = None
 
 df = build_task_dataframe(rows, resource_names)
 st.download_button(
