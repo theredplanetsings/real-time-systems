@@ -6,7 +6,7 @@ The app supports task-set authoring, schedulability checks, schedule generation,
 
 ### Main Pages
 - `pages/00_Algorithm_Explorer.py`: Primary workflow for EDF, EDD, RM, and DM variants.
-- `pages/01_Task_Set_Builder.py`: Standalone task-set authoring and CSV export.
+- `pages/01_Task_Set_Builder.py`: Standalone task-set authoring with presets, seeded generation, snapshots, and CSV/JSON export.
 - `pages/02_Compare_Mode.py`: Side-by-side comparison across multiple algorithms and task sets.
 - `pages/16_Mixed_Workload_Analysis.py`: Periodic EDF baseline versus slack stealing for mixed periodic/aperiodic workloads.
 
@@ -19,11 +19,13 @@ The app supports task-set authoring, schedulability checks, schedule generation,
 ### Key Behaviors
 - Shared validation clamps unsafe phase, period, computation, deadline, resource, and mixed-criticality values before simulation.
 - Algorithm Explorer supports mixed-criticality task sets with static or adaptive mode.
-- Compare Mode uses the shared algorithm registry, cached plots, and clearer PNG export handling.
+- Compare Mode uses the shared algorithm registry, cached plots, miss-detail reporting, and CSV/JSON task-set export.
 - Resource-aware protocols are available where they apply: None, PIP, PCP, and NPP.
 - Legacy flat pages remain archived under `legacy_pages/`.
 
 ## Recent Updates
+- Added Task Set Builder presets, JSON import/export, seeded generation, hyperperiod warnings, and scenario snapshots.
+- Added Compare Mode deadline miss detail table and JSON task-set export.
 - Added Cyclic Executive support to Compare Mode with automatic frame-size selection.
 - Added mixed-workload analysis for baseline EDF versus slack stealing.
 - Added mixed-criticality support in Algorithm Explorer with static and adaptive modes.
