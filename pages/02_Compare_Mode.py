@@ -156,6 +156,55 @@ def _summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str,
     }
 
 
+def _deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
+    if not segments:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(segments)
+    if df.empty or "job" not in df.columns:
+        return pd.DataFrame()
+
+    releases = (
+        df.groupby("job", as_index=False)["release"]
+        .min()
+        .rename(columns={"release": "Release"})
+    )
+    deadlines = (
+        df.groupby("job", as_index=False)["deadline"]
+        .max()
+        .rename(columns={"deadline": "Deadline"})
+    )
+
+    completed_rows = df[(df.get("phase") != "Blocked") & (pd.to_numeric(df.get("remaining"), errors="coerce") == 0)]
+    completions = (
+        completed_rows.groupby("job", as_index=False)["end"]
+        .min()
+        .rename(columns={"end": "Finish"})
+    )
+
+    details = releases.merge(deadlines, on="job", how="outer").merge(completions, on="job", how="left")
+    details["Finish"] = pd.to_numeric(details["Finish"], errors="coerce")
+    details["Deadline"] = pd.to_numeric(details["Deadline"], errors="coerce")
+    details["Release"] = pd.to_numeric(details["Release"], errors="coerce")
+    details["Missed"] = details.apply(
+        lambda row: (pd.isna(row["Finish"]) and row["Deadline"] <= horizon)
+        or (not pd.isna(row["Finish"]) and row["Finish"] > row["Deadline"]),
+        axis=1,
+    )
+    details = details[details["Missed"]].copy()
+    if details.empty:
+        return details
+
+    details["Lateness"] = details.apply(
+        lambda row: (horizon - row["Deadline"]) if pd.isna(row["Finish"]) else (row["Finish"] - row["Deadline"]),
+        axis=1,
+    )
+    details["Finish"] = details["Finish"].fillna("not finished")
+
+    details = details.rename(columns={"job": "Job"})
+    return details[["Job", "Release", "Deadline", "Finish", "Lateness"]].sort_values(by=["Deadline", "Job"])
+
+
 st.sidebar.header("Compare Setup")
 algorithm_count = int(st.sidebar.number_input("Algorithms to compare", min_value=2, max_value=8, value=2, step=1))
 use_unique_default = st.sidebar.checkbox("Default to unique task set per algorithm", value=False)
@@ -548,6 +597,11 @@ if st.button("Run Compare", type="primary"):
                 mime="text/csv",
                 key=f"dl_csv_{ts_index}_{alg_index}",
             )
+
+            miss_details = _deadline_miss_details(segments, range_end)
+            if not miss_details.empty:
+                st.caption("Deadline miss details")
+                st.dataframe(miss_details, use_container_width=True)
 
             if runtime["algorithm"].startswith("Partitioned") and result["loads"]:
                 load_metric = str(runtime["metric"]).lower()
