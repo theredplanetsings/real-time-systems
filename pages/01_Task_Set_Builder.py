@@ -1,6 +1,6 @@
 import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
-from rt_utils import build_task_dataframe, task_csv_bytes
+from rt_utils import build_task_dataframe, task_csv_bytes, task_json_bytes
 
 PRESET_TASK_SETS = {
     "Balanced Trio": [
@@ -88,9 +88,18 @@ rows = render_task_inputs(
 st.session_state["builder_seed_rows"] = None
 
 df = build_task_dataframe(rows, resource_names)
-st.download_button(
-    label="Download task set CSV",
-    data=task_csv_bytes(df),
-    file_name="task_set_gamma.csv",
-    mime="text/csv",
-)
+download_cols = st.columns(2)
+with download_cols[0]:
+    st.download_button(
+        label="Download task set CSV",
+        data=task_csv_bytes(df),
+        file_name="task_set_gamma.csv",
+        mime="text/csv",
+    )
+with download_cols[1]:
+    st.download_button(
+        label="Download task set JSON",
+        data=task_json_bytes(df),
+        file_name="task_set_gamma.json",
+        mime="application/json",
+    )

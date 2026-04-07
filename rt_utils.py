@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 import io
+import json
 import math
 import numpy as np
 import pandas as pd
@@ -439,6 +440,11 @@ def task_csv_bytes(df: pd.DataFrame) -> bytes:
     buf = io.StringIO()
     df.to_csv(buf, index=False)
     return buf.getvalue().encode("utf-8")
+
+
+def task_json_bytes(df: pd.DataFrame) -> bytes:
+    payload = {"tasks": df.to_dict(orient="records")}
+    return json.dumps(payload, indent=2).encode("utf-8")
 
 def schedule_png_bytes(fig) -> Tuple[Optional[bytes], Optional[str]]:
     try:
