@@ -63,15 +63,33 @@ real-time-systems/
 ├── edf/                   # Earliest Deadline First scheduling
 ├── global-rm/             # Global RM on multiple processors
 ├── legacy_pages/          # Archived legacy Streamlit algorithm pages
+│   ├── 02_EDF.py
+│   ├── 03_EDD.py
+│   ├── 04_RM.py
+│   ├── 05_DM.py
+│   ├── 07_Global_RM.py
+│   ├── 08_Global_EDF.py
+│   ├── 09_Global_DM.py
+│   ├── 12_Partitioned_EDF.py
+│   ├── 13_Partitioned_RM.py
+│   └── 14_Partitioned_DM.py
+├── pages/                 # Active Streamlit pages
+│   ├── 00_Algorithm_Explorer.py
+│   ├── 01_Task_Set_Builder.py
+│   ├── 02_Compare_Mode.py
+│   ├── 06_Cyclic_Executive.py
+│   ├── 10_Time_Demand.py
+│   ├── 11_Priority_Inversion.py
+│   ├── 15_Slack_Stealing.py
+│   └── 16_Mixed_Workload_Analysis.py
 ├── priority-inversion/    # Priority inversion examples and debugging
 ├── rm-dm-basics/          # RM/DM basics and Lehoczky's counterexample
 ├── rm-npp/                # Rate Monotonic with Non-Preemptive Protocol
 ├── rm-pip/                # Rate Monotonic with Priority Inheritance Protocol
 ├── time-demand-analysis/  # Time-demand analysis for a selected task
-├── pages/                 # Streamlit pages (Explorer + specialized tools)
-├── rt_utils.py            # Scheduling logic and plot helpers
-├── st_helpers.py          # Streamlit UI helpers
 ├── streamlit_app.py       # Dashboard landing page
+├── st_helpers.py          # Shared Streamlit page helpers
+├── rt_utils.py            # Scheduling logic and plot helpers
 └── requirements.txt       # Dashboard dependencies
 ```
 
