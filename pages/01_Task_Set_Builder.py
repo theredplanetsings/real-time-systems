@@ -3,7 +3,7 @@ import random
 
 import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
-from rt_utils import build_task_dataframe, task_csv_bytes, task_json_bytes
+from rt_utils import build_task_dataframe, compute_hyperperiod, task_csv_bytes, task_json_bytes
 
 PRESET_TASK_SETS = {
     "Balanced Trio": [
@@ -156,6 +156,9 @@ if uploaded_json is not None:
 
 default_period = st.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
 default_computation = st.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+hyperperiod_threshold = int(
+    st.number_input("Hyperperiod warning threshold", min_value=1, max_value=100_000, value=1000, step=1)
+)
 
 resource_count = 0
 if include_resources:
@@ -181,6 +184,15 @@ rows = render_task_inputs(
 st.session_state["builder_seed_rows"] = None
 
 df = build_task_dataframe(rows, resource_names)
+
+periods = [task.period for task in rows if task.period > 0]
+if periods:
+    hyperperiod = compute_hyperperiod(periods)
+    if hyperperiod > hyperperiod_threshold:
+        st.warning(f"Hyperperiod is {hyperperiod}, which exceeds the threshold {hyperperiod_threshold}.")
+    else:
+        st.caption(f"Hyperperiod: {hyperperiod}")
+
 download_cols = st.columns(2)
 with download_cols[0]:
     st.download_button(
