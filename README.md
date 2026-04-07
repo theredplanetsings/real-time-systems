@@ -4,6 +4,8 @@ Real-time scheduling examples, analysis pages, and interactive plots in a Stream
 ## Dashboard
 The app supports task-set authoring, schedulability checks, schedule generation, and CSV/PNG export. It also covers several non-obvious workflow pages beyond the main explorer.
 
+The dashboard home page now includes a styled hero, data-driven navigation cards, compact sparkline previews, and a Recent Updates panel generated from a single source list.
+
 ### Main Pages
 - `pages/00_Algorithm_Explorer.py`: Primary workflow for EDF, EDD, RM, and DM variants.
 - `pages/01_Task_Set_Builder.py`: Standalone task-set authoring with presets, seeded generation, snapshots, and CSV/JSON export.
@@ -24,6 +26,7 @@ The app supports task-set authoring, schedulability checks, schedule generation,
 - Legacy flat pages remain archived under `legacy_pages/`.
 
 ## Recent Updates
+- Refreshed the dashboard home page with data-driven sections and sparkline previews.
 - Added Task Set Builder presets, JSON import/export, seeded generation, hyperperiod warnings, and scenario snapshots.
 - Added Compare Mode deadline miss detail table and JSON task-set export.
 - Added Cyclic Executive support to Compare Mode with automatic frame-size selection.
