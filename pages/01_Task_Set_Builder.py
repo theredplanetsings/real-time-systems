@@ -1,4 +1,5 @@
 import json
+import random
 
 import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
@@ -46,6 +47,33 @@ def _normalize_imported_rows(raw_tasks: object) -> list[dict[str, int]]:
         )
     return normalized
 
+
+def _generate_seeded_rows(
+    count: int,
+    seed: int,
+    min_period: int,
+    max_period: int,
+    min_computation: int,
+    max_computation: int,
+) -> list[dict[str, int]]:
+    rng = random.Random(seed)
+    rows: list[dict[str, int]] = []
+    for _ in range(count):
+        period = rng.randint(min_period, max_period)
+        period = max(period, min_computation)
+        max_comp_bound = min(max_computation, period)
+        computation = rng.randint(min_computation, max_comp_bound)
+        deadline = rng.randint(computation, period)
+        rows.append(
+            {
+                "phase": 0,
+                "period": period,
+                "computation": computation,
+                "deadline": deadline,
+            }
+        )
+    return rows
+
 st.set_page_config(page_title="Task Set Builder", layout="wide")
 
 st.title("Task Set Builder")
@@ -77,6 +105,30 @@ num_tasks = st.number_input(
     step=1,
     key="builder_num_tasks",
 )
+
+with st.expander("Seeded generator", expanded=False):
+    g1, g2, g3 = st.columns(3)
+    random_seed = int(g1.number_input("Seed", min_value=0, max_value=999_999, value=42, step=1))
+    min_period = int(g2.number_input("Min period", min_value=1, max_value=200, value=5, step=1))
+    max_period = int(g3.number_input("Max period", min_value=min_period, max_value=500, value=25, step=1))
+
+    g4, g5 = st.columns(2)
+    min_computation = int(g4.number_input("Min computation", min_value=1, max_value=200, value=1, step=1))
+    max_computation = int(
+        g5.number_input("Max computation", min_value=min_computation, max_value=200, value=6, step=1)
+    )
+
+    if st.button("Generate seeded task set"):
+        generated_rows = _generate_seeded_rows(
+            int(num_tasks),
+            random_seed,
+            min_period,
+            max_period,
+            min_computation,
+            max_computation,
+        )
+        st.session_state["builder_seed_rows"] = generated_rows
+        st.success(f"Generated {len(generated_rows)} task(s) with seed {random_seed}.")
 
 include_phase = st.checkbox("Include phase", value=True)
 include_period = st.checkbox("Include period", value=True)
