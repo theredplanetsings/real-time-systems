@@ -14,6 +14,7 @@ from rt_utils import (
     simulate_partitioned,
     simulate_uniprocessor,
     task_csv_bytes,
+    task_json_bytes,
 )
 
 st.set_page_config(page_title="Compare Mode", layout="wide")
@@ -590,13 +591,23 @@ if st.button("Run Compare", type="primary"):
                 st.warning(png_error)
 
             ts_csv = build_task_dataframe(all_task_sets[ts_index], resource_names_for_task_set[ts_index])
-            st.download_button(
-                label="Download task set CSV",
-                data=task_csv_bytes(ts_csv),
-                file_name=f"compare_taskset_{ts_index + 1}.csv",
-                mime="text/csv",
-                key=f"dl_csv_{ts_index}_{alg_index}",
-            )
+            export_cols = st.columns(2)
+            with export_cols[0]:
+                st.download_button(
+                    label="Download task set CSV",
+                    data=task_csv_bytes(ts_csv),
+                    file_name=f"compare_taskset_{ts_index + 1}.csv",
+                    mime="text/csv",
+                    key=f"dl_csv_{ts_index}_{alg_index}",
+                )
+            with export_cols[1]:
+                st.download_button(
+                    label="Download task set JSON",
+                    data=task_json_bytes(ts_csv),
+                    file_name=f"compare_taskset_{ts_index + 1}.json",
+                    mime="application/json",
+                    key=f"dl_json_{ts_index}_{alg_index}",
+                )
 
             miss_details = _deadline_miss_details(segments, range_end)
             if not miss_details.empty:
