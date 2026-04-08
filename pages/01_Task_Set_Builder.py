@@ -1,5 +1,6 @@
 import json
 import random
+from datetime import datetime, timezone
 
 import streamlit as st
 from st_helpers import render_sidebar, render_task_inputs
@@ -31,7 +32,6 @@ PRESET_TASK_SETS = {
     ],
 }
 
-
 def _normalize_imported_rows(raw_tasks: object) -> list[dict[str, int]]:
     if not isinstance(raw_tasks, list):
         return []
@@ -53,7 +53,6 @@ def _normalize_imported_rows(raw_tasks: object) -> list[dict[str, int]]:
             }
         )
     return normalized
-
 
 def _generate_seeded_rows(
     count: int,
@@ -80,6 +79,20 @@ def _generate_seeded_rows(
             }
         )
     return rows
+
+
+def _scenario_bundle_bytes(rows, df, hyperperiod: int | None) -> bytes:
+    payload = {
+        "metadata": {
+            "exported_at_utc": datetime.now(timezone.utc).isoformat(),
+            "task_count": len(rows),
+            "utilisation": utilisation(rows),
+            "density": density(rows),
+            "hyperperiod": hyperperiod,
+        },
+        "tasks": df.to_dict(orient="records"),
+    }
+    return json.dumps(payload, indent=2).encode("utf-8")
 
 st.set_page_config(page_title="Task Set Builder", layout="wide")
 
@@ -228,6 +241,7 @@ if saved_names:
 df = build_task_dataframe(rows, resource_names)
 
 periods = [task.period for task in rows if task.period > 0]
+hyperperiod = None
 if periods:
     hyperperiod = compute_hyperperiod(periods)
     if hyperperiod > hyperperiod_threshold:
@@ -250,3 +264,10 @@ with download_cols[1]:
         file_name="task_set_gamma.json",
         mime="application/json",
     )
+
+st.download_button(
+    label="Download scenario bundle JSON",
+    data=_scenario_bundle_bytes(rows, df, hyperperiod),
+    file_name="task_set_scenario_bundle.json",
+    mime="application/json",
+)
