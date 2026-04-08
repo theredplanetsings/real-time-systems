@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from scheduling_math import compute_hyperperiod, density, rm_bound, utilisation
 
 @dataclass
 class TaskSpec:
@@ -114,10 +115,8 @@ COMPARE_ALGORITHMS: Dict[str, Dict[str, str]] = {
     "Partitioned DM": {"mode": "partitioned", "family": "DM"},
 }
 
-
 def family_names() -> List[str]:
     return list(ALGORITHM_FAMILIES.keys())
-
 
 def variants_for_family(family: str) -> List[str]:
     family_meta = ALGORITHM_FAMILIES.get(family, {})
@@ -125,21 +124,6 @@ def variants_for_family(family: str) -> List[str]:
     if isinstance(variants, dict):
         return list(variants.keys())
     return []
-
-def utilisation(tasks: List[TaskSpec]) -> float:
-    if not tasks:
-        return 0.0
-    return sum(task.computation / task.period for task in tasks)
-
-def density(tasks: List[TaskSpec]) -> float:
-    if not tasks:
-        return 0.0
-    return sum(task.computation / min(task.deadline, task.period) for task in tasks)
-
-def rm_bound(task_count: int) -> float:
-    if task_count <= 0:
-        return 1.0
-    return task_count * (2 ** (1.0 / task_count) - 1.0)
 
 def schedulability_summary(
     tasks: List[TaskSpec],
@@ -259,15 +243,6 @@ def schedulability_summary(
 
     return summary
 
-def compute_hyperperiod(periods: List[int]) -> int:
-    def lcm(a: int, b: int) -> int:
-        return abs(a * b) // math.gcd(a, b)
-
-    hyper = 1
-    for period in periods:
-        hyper = lcm(hyper, period)
-    return hyper
-
 def build_task_dataframe(tasks: List[TaskSpec], resource_names: List[str]) -> pd.DataFrame:
     rows = []
     include_crit = any(bool(task.criticality) for task in tasks)
@@ -290,7 +265,6 @@ def build_task_dataframe(tasks: List[TaskSpec], resource_names: List[str]) -> pd
             row[f"resource_{res}"] = task.resources.get(res, 0)
         rows.append(row)
     return pd.DataFrame(rows)
-
 
 def _criticality_rank(label: str) -> int:
     value = (label or "").strip().lower()
@@ -315,7 +289,6 @@ def _criticality_rank(label: str) -> int:
 
     return 0
 
-
 def _task_wcet_budgets(task: TaskSpec, is_hi_class: bool) -> Tuple[int, int]:
     c_lo = int(task.wcet_lo if task.wcet_lo is not None else task.computation)
     c_lo = max(c_lo, 1)
@@ -324,7 +297,6 @@ def _task_wcet_budgets(task: TaskSpec, is_hi_class: bool) -> Tuple[int, int]:
     if not is_hi_class:
         c_hi = c_lo
     return c_lo, c_hi
-
 
 def simulate_mixed_criticality_uniprocessor(
     tasks: List[TaskSpec],
@@ -441,7 +413,6 @@ def task_csv_bytes(df: pd.DataFrame) -> bytes:
     df.to_csv(buf, index=False)
     return buf.getvalue().encode("utf-8")
 
-
 def task_json_bytes(df: pd.DataFrame) -> bytes:
     payload = {"tasks": df.to_dict(orient="records")}
     return json.dumps(payload, indent=2).encode("utf-8")
@@ -454,7 +425,6 @@ def schedule_png_bytes(fig) -> Tuple[Optional[bytes], Optional[str]]:
 
 def schedule_dataframe(segments: List[Dict[str, object]]) -> pd.DataFrame:
     return pd.DataFrame(segments)
-
 
 def mixed_criticality_stats(segments: List[Dict[str, object]]) -> Dict[str, object]:
     df = schedule_dataframe(segments)
@@ -724,7 +694,6 @@ def schedule_figure(
         fig.update_xaxes(dtick=tick_step)
     return fig
 
-
 def _priority_value(algorithm: str, job: JobState) -> int:
     if algorithm == "RM":
         return job.task.period
@@ -734,7 +703,6 @@ def _priority_value(algorithm: str, job: JobState) -> int:
         return job.absolute_deadline
     return job.task.period
 
-
 def _resource_ceilings(tasks: List[TaskSpec]) -> Dict[str, int]:
     ceilings: Dict[str, int] = {}
     for task in tasks:
@@ -743,19 +711,16 @@ def _resource_ceilings(tasks: List[TaskSpec]) -> Dict[str, int]:
             ceilings[res] = min(ceilings.get(res, prio), prio)
     return ceilings
 
-
 def _system_ceiling(resource_holders: Dict[str, Optional[JobState]], resource_ceilings: Dict[str, int]) -> int:
     locked = [res for res, holder in resource_holders.items() if holder is not None]
     if not locked:
         return 10**9
     return min(resource_ceilings[res] for res in locked)
 
-
 def _build_phase_queue(resource_order: str, resources: List[str]) -> List[str]:
     if resource_order == "Resources then CPU":
         return resources + ["cpu"]
     return ["cpu"] + resources
-
 
 def _next_phase(job: JobState) -> None:
     while job.phase_queue:
@@ -769,7 +734,6 @@ def _next_phase(job: JobState) -> None:
         job.current_phase = next_phase
         return
     job.current_phase = "done"
-
 
 def generate_jobs(tasks: List[TaskSpec], horizon: int, resource_order: str) -> List[Tuple[int, JobState]]:
     jobs: List[Tuple[int, JobState]] = []
@@ -796,7 +760,6 @@ def generate_jobs(tasks: List[TaskSpec], horizon: int, resource_order: str) -> L
             job_num += 1
     jobs.sort(key=lambda item: item[0])
     return jobs
-
 
 def simulate_uniprocessor(
     tasks: List[TaskSpec],
@@ -1064,7 +1027,6 @@ def simulate_global_rm(tasks: List[TaskSpec], horizon: int, processors: int) -> 
 
     return segments
 
-
 def simulate_global_edf(tasks: List[TaskSpec], horizon: int, processors: int) -> List[Dict[str, object]]:
     jobs = generate_jobs(tasks, horizon, "CPU then resources")
     ready: List[JobState] = []
@@ -1106,7 +1068,6 @@ def simulate_global_edf(tasks: List[TaskSpec], horizon: int, processors: int) ->
                 ready.append(job)
 
     return segments
-
 
 def simulate_global_dm(tasks: List[TaskSpec], horizon: int, processors: int) -> List[Dict[str, object]]:
     jobs = generate_jobs(tasks, horizon, "CPU then resources")
@@ -1150,12 +1111,10 @@ def simulate_global_dm(tasks: List[TaskSpec], horizon: int, processors: int) -> 
 
     return segments
 
-
 def _task_weight(task: TaskSpec, metric: str) -> float:
     if metric == "Density":
         return task.computation / min(task.deadline, task.period)
     return task.computation / task.period
-
 
 def partition_tasks(
     tasks: List[TaskSpec],
@@ -1187,7 +1146,6 @@ def partition_tasks(
         loads[target] += weight
 
     return assignments, loads, overloaded
-
 
 def simulate_partitioned(
     tasks: List[TaskSpec],
@@ -1221,7 +1179,6 @@ def simulate_partitioned(
         segments.extend(part_segments)
 
     return segments, loads, overloaded
-
 
 def simulate_slack_stealing(
     periodic_tasks: List[TaskSpec],
@@ -1308,7 +1265,6 @@ def simulate_slack_stealing(
             )
 
     return segments
-
 
 def slack_stealing_stats(
     segments: List[Dict[str, object]],
@@ -1460,7 +1416,6 @@ def cyclic_executive_schedule(tasks: List[TaskSpec], frame: int) -> List[Dict[st
     hyper = compute_hyperperiod([task.period for task in tasks])
     frames = [{"start": t, "end": t + frame, "used": 0} for t in range(0, hyper, frame)]
     segments: List[Dict[str, object]] = []
-
     jobs = []
     for task in tasks:
         t = task.phase
