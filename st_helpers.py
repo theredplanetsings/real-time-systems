@@ -278,7 +278,6 @@ def render_schedulability(tasks: List[TaskSpec], algorithm: str, processors: int
     else:
         st.info(summary["detail"])
 
-
 @st.cache_data(show_spinner=False)
 def cached_schedule_figure(
     segments: list[dict[str, object]],
@@ -294,7 +293,6 @@ def cached_schedule_figure(
         range_start=range_start,
         range_end=range_end,
     )
-
 
 def render_algorithm_workbench(
     *,
