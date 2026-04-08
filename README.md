@@ -5,12 +5,14 @@ Real-time scheduling examples, analysis pages, and interactive plots in a Stream
 The app supports task-set authoring, schedulability checks, schedule generation, and CSV/PNG export. It also covers several non-obvious workflow pages beyond the main explorer.
 
 The dashboard home page now includes a styled hero, data-driven navigation cards, compact sparkline previews, and a Recent Updates panel generated from a single source list.
+The latest home-page pass also tightened the color palette so text and controls are easier to read.
 
 ### Main Pages
 - `pages/00_Algorithm_Explorer.py`: Primary workflow for EDF, EDD, RM, and DM variants.
 - `pages/01_Task_Set_Builder.py`: Standalone task-set authoring with presets, seeded generation, snapshots, and CSV/JSON export.
 - `pages/02_Compare_Mode.py`: Side-by-side comparison across multiple algorithms and task sets.
 - `pages/16_Mixed_Workload_Analysis.py`: Periodic EDF baseline versus slack stealing for mixed periodic/aperiodic workloads.
+- `pages/17_Benchmark_Suite.py`: Runtime and deadline-miss benchmark comparisons across canned scenarios.
 
 ### Specialized Analyses
 - `pages/06_Cyclic_Executive.py`: Frame-size search and cyclic executive schedule generation.
@@ -68,9 +70,12 @@ T3 = (3, 0, 20, 4, 20)
 - Added Task Set Builder presets, JSON import/export, seeded generation, hyperperiod warnings, and scenario snapshots.
 - Added Compare Mode deadline miss detail table and JSON task-set export.
 - Added Cyclic Executive support to Compare Mode with automatic frame-size selection.
+- Added a benchmark suite page for runtime and miss comparisons across canned workloads.
 - Added mixed-workload analysis for baseline EDF versus slack stealing.
 - Added mixed-criticality support in Algorithm Explorer with static and adaptive modes.
 - Added dynamic sidebar controls, shared validation, cached plot helpers, and clearer PNG export errors.
+- Added a GitHub Actions CI workflow, dev tooling config, verification guide, and contribution guide.
+- Refreshed the dashboard home page contrast for improved readability.
 
 ### Mixed-Criticality (SMC/AMC)
 - Enable **Include criticality** in Algorithm Explorer.
@@ -120,6 +125,9 @@ real-time-systems/
 │   ├── 11_Priority_Inversion.py
 │   ├── 15_Slack_Stealing.py
 │   └── 16_Mixed_Workload_Analysis.py
+│   └── 17_Benchmark_Suite.py
+├── docs/                   # Verification and contributor guidance
+├── .github/workflows/      # CI workflow definitions
 ├── priority-inversion/    # Priority inversion examples and debugging
 ├── rm-dm-basics/          # RM/DM basics and Lehoczky's counterexample
 ├── rm-npp/                # Rate Monotonic with Non-Preemptive Protocol
@@ -128,6 +136,8 @@ real-time-systems/
 ├── streamlit_app.py       # Dashboard landing page
 ├── st_helpers.py          # Shared Streamlit page helpers
 ├── rt_utils.py            # Scheduling logic and plot helpers
+├── scheduling_math.py     # Shared scheduling math helpers
+├── compare_utils.py       # Compare-mode summary helpers
 └── requirements.txt       # Dashboard dependencies
 ```
 
