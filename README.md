@@ -100,9 +100,15 @@ streamlit run streamlit_app.py
 ## Structure
 ```
 real-time-systems/
+├── .github/workflows/      # CI workflow definitions
+├── CONTRIBUTING.md         # Contribution guidelines
+├── Makefile                # Common developer commands
+├── README.md               # Project overview and usage
+├── compare_utils.py        # Compare-mode summary helpers
 ├── cyclic-executive/      # Cyclic executive frame sizing and schedules
 ├── dm-pcp/                # Deadline Monotonic with Priority Ceiling Protocol
 ├── dm-pip/                # Deadline Monotonic with Priority Inheritance Protocol
+├── docs/                  # Verification and contributor guidance
 ├── edf/                   # Earliest Deadline First scheduling
 ├── global-rm/             # Global RM on multiple processors
 ├── legacy_pages/          # Archived legacy Streamlit algorithm pages
@@ -124,21 +130,22 @@ real-time-systems/
 │   ├── 10_Time_Demand.py
 │   ├── 11_Priority_Inversion.py
 │   ├── 15_Slack_Stealing.py
-│   └── 16_Mixed_Workload_Analysis.py
+│   ├── 16_Mixed_Workload_Analysis.py
 │   └── 17_Benchmark_Suite.py
-├── docs/                   # Verification and contributor guidance
-├── .github/workflows/      # CI workflow definitions
 ├── priority-inversion/    # Priority inversion examples and debugging
+├── pyproject.toml         # Ruff/Black configuration
+├── requirements-dev.txt   # Development and lint/test dependencies
+├── requirements.txt       # Runtime dependencies
 ├── rm-dm-basics/          # RM/DM basics and Lehoczky's counterexample
 ├── rm-npp/                # Rate Monotonic with Non-Preemptive Protocol
 ├── rm-pip/                # Rate Monotonic with Priority Inheritance Protocol
+├── tests/                 # Automated test suite
 ├── time-demand-analysis/  # Time-demand analysis for a selected task
 ├── streamlit_app.py       # Dashboard landing page
 ├── st_helpers.py          # Shared Streamlit page helpers
 ├── rt_utils.py            # Scheduling logic and plot helpers
 ├── scheduling_math.py     # Shared scheduling math helpers
-├── compare_utils.py       # Compare-mode summary helpers
-└── requirements.txt       # Dashboard dependencies
+└── (see folders above for algorithm-specific scripts and notes)
 ```
 
 Each algorithm folder contains a focused script (or set of scripts) for the named
