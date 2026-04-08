@@ -98,6 +98,67 @@ def _run_algorithm(
     return segments, loads, overloaded
 
 
+def _task_signature(tasks: list[TaskSpec]) -> tuple[tuple[object, ...], ...]:
+    return tuple(
+        (
+            task.task_id,
+            task.phase,
+            task.period,
+            task.computation,
+            task.deadline,
+            tuple(sorted(task.resources.items())),
+            task.criticality,
+            task.wcet_lo,
+            task.wcet_hi,
+        )
+        for task in tasks
+    )
+
+
+def _tasks_from_signature(signature: tuple[tuple[object, ...], ...]) -> list[TaskSpec]:
+    tasks: list[TaskSpec] = []
+    for entry in signature:
+        resources = {str(name): int(value) for name, value in entry[5]}
+        tasks.append(
+            TaskSpec(
+                task_id=int(entry[0]),
+                phase=int(entry[1]),
+                period=int(entry[2]),
+                computation=int(entry[3]),
+                deadline=int(entry[4]),
+                resources=resources,
+                criticality=str(entry[6]),
+                wcet_lo=None if entry[7] is None else int(entry[7]),
+                wcet_hi=None if entry[8] is None else int(entry[8]),
+            )
+        )
+    return tasks
+
+
+@st.cache_data(show_spinner=False)
+def _cached_run_algorithm(
+    algorithm: str,
+    tasks_signature: tuple[tuple[object, ...], ...],
+    horizon: int,
+    protocol: str,
+    resource_order: str,
+    processors: int,
+    strategy: str,
+    metric: str,
+) -> tuple[list[dict[str, object]], list[float], bool]:
+    tasks = _tasks_from_signature(tasks_signature)
+    return _run_algorithm(
+        algorithm=algorithm,
+        tasks=tasks,
+        horizon=horizon,
+        protocol=protocol,
+        resource_order=resource_order,
+        processors=processors,
+        strategy=strategy,
+        metric=metric,
+    )
+
+
 st.sidebar.header("Compare Setup")
 algorithm_count = int(st.sidebar.number_input("Algorithms to compare", min_value=2, max_value=8, value=2, step=1))
 use_unique_default = st.sidebar.checkbox("Default to unique task set per algorithm", value=False)
@@ -393,9 +454,9 @@ if st.button("Run Compare", type="primary"):
         algorithm = str(runtime["algorithm"])
         tasks = all_task_sets[ts_index]
 
-        segments, loads, overloaded = _run_algorithm(
+        segments, loads, overloaded = _cached_run_algorithm(
             algorithm=algorithm,
-            tasks=tasks,
+            tasks_signature=_task_signature(tasks),
             horizon=range_end,
             protocol=str(runtime["protocol"]),
             resource_order=str(runtime["resource_order"]),
@@ -447,7 +508,6 @@ if st.button("Run Compare", type="primary"):
         )
 
     st.dataframe(pd.DataFrame(summary_rows), use_container_width=True)
-
     st.subheader("Schedules")
     for result in results:
         ts_index = result["task_set_index"]
