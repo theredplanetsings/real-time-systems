@@ -89,52 +89,68 @@ st.markdown(
 
 html, body, [class*="css"] {
     font-family: 'Space Grotesk', sans-serif;
+    color: #0f172a;
 }
 
 [data-testid="stAppViewContainer"] {
     background:
-        radial-gradient(circle at 12% 8%, rgba(255, 122, 89, 0.18), transparent 38%),
-        radial-gradient(circle at 88% 18%, rgba(58, 124, 255, 0.16), transparent 40%),
-        linear-gradient(180deg, #f5f7fb 0%, #edf1f8 100%);
+        radial-gradient(circle at 12% 8%, rgba(255, 122, 89, 0.08), transparent 34%),
+        radial-gradient(circle at 88% 18%, rgba(58, 124, 255, 0.09), transparent 36%),
+        linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+    color: #0f172a;
+}
+
+[data-testid="stAppViewContainer"] p,
+[data-testid="stAppViewContainer"] li {
+    color: #1f2937;
+}
+
+a {
+    color: #1d4ed8;
+}
+
+a:hover {
+    color: #0f3d91;
 }
 
 .hero {
-    border: 1px solid rgba(35, 57, 84, 0.16);
-    background: linear-gradient(130deg, rgba(255, 255, 255, 0.92), rgba(246, 250, 255, 0.92));
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: linear-gradient(130deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.98));
     border-radius: 18px;
     padding: 1.2rem 1.3rem;
     margin-bottom: 1rem;
-    box-shadow: 0 12px 28px rgba(32, 53, 78, 0.08);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
 }
 
 .eyebrow {
     display: inline-block;
     padding: 0.2rem 0.55rem;
-    border: 1px solid rgba(44, 71, 108, 0.28);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     border-radius: 999px;
     font-size: 0.73rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #314a6b;
-    background: rgba(255, 255, 255, 0.7);
+    color: #0f3d91;
+    background: rgba(255, 255, 255, 0.92);
     margin-bottom: 0.5rem;
+    font-weight: 700;
 }
 
 .hero h1 {
     margin: 0;
-    color: #0e243d;
+    color: #0f172a;
     font-size: clamp(1.6rem, 2.8vw, 2.4rem);
     line-height: 1.12;
 }
 
 .hero p {
     margin-top: 0.55rem;
-    color: #2f4665;
+    color: #334155;
     font-size: 1rem;
 }
 
 .section-note {
-    color: #365072;
+    color: #334155;
     margin-top: -0.35rem;
     margin-bottom: 0.65rem;
 }
@@ -144,37 +160,41 @@ html, body, [class*="css"] {
     margin-bottom: 0.65rem;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
-    color: #2e4b70;
+    color: #334155;
 }
 
 .chip {
     display: inline-block;
-    border: 1px solid rgba(52, 79, 114, 0.25);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     border-radius: 999px;
     padding: 0.18rem 0.5rem;
     margin-right: 0.35rem;
     margin-bottom: 0.35rem;
-    background: rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
 }
 
 .run-box {
     font-family: 'IBM Plex Mono', monospace;
-    border: 1px solid rgba(44, 68, 100, 0.22);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.7);
-    color: #213653;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
     padding: 0.65rem 0.75rem;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 .update-panel {
-    border: 1px solid rgba(37, 60, 92, 0.18);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.96);
     padding: 0.85rem 0.95rem;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 .update-item {
-    border-top: 1px dashed rgba(46, 73, 108, 0.28);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
     padding-top: 0.55rem;
     margin-top: 0.55rem;
 }
@@ -186,14 +206,18 @@ html, body, [class*="css"] {
 }
 
 .update-item-title {
-    color: #173356;
+    color: #0f172a;
     font-weight: 700;
     font-size: 0.96rem;
 }
 
 .update-item-detail {
-    color: #3a5478;
+    color: #475569;
     font-size: 0.88rem;
+}
+
+[data-testid="stCaptionContainer"] {
+    color: #475569;
 }
 
 @media (max-width: 800px) {
