@@ -14,13 +14,13 @@ The latest home-page pass also tightened the color palette so text and controls 
 - `pages/16_Mixed_Workload_Analysis.py`: Periodic EDF baseline versus slack stealing for mixed periodic/aperiodic workloads.
 - `pages/17_Benchmark_Suite.py`: Runtime and deadline-miss benchmark comparisons across canned scenarios.
 
-### Specialized Analyses
+### Specialised Analyses
 - `pages/06_Cyclic_Executive.py`: Frame-size search and cyclic executive schedule generation.
 - `pages/10_Time_Demand.py`: Time-demand analysis for a selected task.
 - `pages/11_Priority_Inversion.py`: Resource-sharing demo with protocol options.
 - `pages/15_Slack_Stealing.py`: Idle-time reclamation for periodic EDF plus aperiodic jobs.
 
-### Key Behaviors
+### Key Behaviours
 - Shared validation clamps unsafe phase, period, computation, deadline, resource, and mixed-criticality values before simulation.
 - Algorithm Explorer supports mixed-criticality task sets with static or adaptive mode.
 - Compare Mode uses the shared algorithm registry, cached plots, miss-detail reporting, and CSV/JSON task-set export.
@@ -45,7 +45,7 @@ T3 = (3, 0, 20, 4, 20)
 
 - EDF:
 	Input: periodic tasks with explicit deadlines.
-	Output: dynamic-priority timeline, deadline-miss report, utilization summary.
+	Output: dynamic-priority timeline, deadline-miss report, utilisation summary.
 - RM:
 	Input: periodic tasks where fixed priorities come from shorter periods.
 	Output: fixed-priority schedule, response-time intuition via timeline, miss report.
