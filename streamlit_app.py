@@ -82,190 +82,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Space Grotesk', sans-serif;
-    color: #0f172a;
-}
-
-[data-testid="stAppViewContainer"] {
-    background:
-        radial-gradient(circle at 12% 8%, rgba(15, 23, 42, 0.08), transparent 34%),
-        radial-gradient(circle at 88% 18%, rgba(51, 65, 85, 0.1), transparent 36%),
-        linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%);
-    color: #0f172a;
-}
-
-[data-testid="stAppViewContainer"] p,
-[data-testid="stAppViewContainer"] li {
-    color: #1f2937;
-}
-
-a {
-    color: #1e40af;
-}
-
-a:hover {
-    color: #1e3a8a;
-}
-
-.hero {
-    border: 1px solid rgba(15, 23, 42, 0.12);
-    background: linear-gradient(130deg, rgba(248, 250, 252, 0.97), rgba(226, 232, 240, 0.95));
-    border-radius: 18px;
-    padding: 1.2rem 1.3rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-}
-
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #e5e7eb 0%, #cbd5e1 100%);
-    border-right: 1px solid rgba(15, 23, 42, 0.12);
-}
-
-[data-testid="stSidebar"] * {
-    color: #111827;
-}
-
-[data-testid="stSidebarNav"] a,
-[data-testid="stSidebarNav"] [data-testid="stSidebarNavLink"] {
-    color: #111827 !important;
-    border-radius: 10px;
-}
-
-[data-testid="stSidebarNav"] a:hover,
-[data-testid="stSidebarNav"] [data-testid="stSidebarNavLink"]:hover {
-    background: rgba(15, 23, 42, 0.08);
-    color: #0f172a !important;
-}
-
-[data-testid="stSidebarNav"] a span,
-[data-testid="stSidebarNav"] [data-testid="stSidebarNavLink"] span {
-    color: #111827 !important;
-    opacity: 1 !important;
-}
-
-.eyebrow {
-    display: inline-block;
-    padding: 0.2rem 0.55rem;
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 999px;
-    font-size: 0.73rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #0f3d91;
-    background: rgba(255, 255, 255, 0.92);
-    margin-bottom: 0.5rem;
-    font-weight: 700;
-}
-
-.hero h1 {
-    margin: 0;
-    color: #0f172a;
-    font-size: clamp(1.6rem, 2.8vw, 2.4rem);
-    line-height: 1.12;
-}
-
-.hero p {
-    margin-top: 0.55rem;
-    color: #334155;
-    font-size: 1rem;
-}
-
-.section-note {
-    color: #334155;
-    margin-top: -0.35rem;
-    margin-bottom: 0.65rem;
-}
-
-.chip-row {
-    margin-top: 0.25rem;
-    margin-bottom: 0.65rem;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: #334155;
-}
-
-.chip {
-    display: inline-block;
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 999px;
-    padding: 0.18rem 0.5rem;
-    margin-right: 0.35rem;
-    margin-bottom: 0.35rem;
-    background: rgba(248, 250, 252, 0.95);
-    color: #0f172a;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-}
-
-.run-box {
-    font-family: 'IBM Plex Mono', monospace;
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 12px;
-    background: rgba(248, 250, 252, 0.95);
-    color: #0f172a;
-    padding: 0.65rem 0.75rem;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-}
-
-.update-panel {
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 14px;
-    background: rgba(248, 250, 252, 0.95);
-    padding: 0.85rem 0.95rem;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-}
-
-.update-item {
-    border-top: 1px solid rgba(15, 23, 42, 0.08);
-    padding-top: 0.55rem;
-    margin-top: 0.55rem;
-}
-
-.update-item:first-child {
-    border-top: none;
-    margin-top: 0;
-    padding-top: 0;
-}
-
-.update-item-title {
-    color: #0f172a;
-    font-weight: 700;
-    font-size: 0.96rem;
-}
-
-.update-item-detail {
-    color: #475569;
-    font-size: 0.88rem;
-}
-
-[data-testid="stCaptionContainer"] {
-    color: #475569;
-}
-
-@media (max-width: 800px) {
-    .hero {
-        padding: 1rem;
-    }
-}
-</style>
-""",
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-<div class="hero">
-  <h1>Real-Time Scheduling Dashboard</h1>
-  <p>Design task sets, stress-test schedulers, and inspect timing behavior with one unified control surface.</p>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+st.title("Real-Time Scheduling Dashboard")
+st.caption("Design task sets, stress-test schedulers, and inspect timing behavior with one unified control surface.")
 
 family_count = len(ALGORITHM_FAMILIES)
 variant_count = sum(len(meta.get("variants", {})) for meta in ALGORITHM_FAMILIES.values())
@@ -294,8 +112,7 @@ metrics[1].metric("Variants", variant_count)
 metrics[2].metric("Methods", method_count)
 
 st.markdown(
-    '<div class="section-note">Core families span EDF, EDD, RM, and DM variants plus focused analysis modules.</div>',
-    unsafe_allow_html=True,
+    "Core families span EDF, EDD, RM, and DM variants plus focused analysis modules.",
 )
 
 def render_sparkline(values: list[float], key: str) -> None:
@@ -324,7 +141,7 @@ nav_col, updates_col = st.columns([2.2, 1])
 with nav_col:
     for section in NAV_SECTIONS:
         st.subheader(str(section["title"]))
-        st.markdown(f'<div class="section-note">{section["note"]}</div>', unsafe_allow_html=True)
+        st.caption(str(section["note"]))
         section_columns = st.columns(int(section["columns"]))
         items = section["items"]
         for idx, item in enumerate(items):
@@ -335,27 +152,15 @@ with nav_col:
 
 with updates_col:
     st.subheader("Recent Updates")
-    updates_html = ["<div class='update-panel'>"]
     for update in RECENT_UPDATES:
-        updates_html.append(
-            "<div class='update-item'>"
-            f"<div class='update-item-title'>{update['title']}</div>"
-            f"<div class='update-item-detail'>{update['detail']}</div>"
-            "</div>"
-        )
-    updates_html.append("</div>")
-    st.markdown("".join(updates_html), unsafe_allow_html=True)
+        st.markdown(f"**{update['title']}**")
+        st.caption(str(update["detail"]))
 
 st.subheader("Run Locally")
-st.markdown('<div class="run-box">streamlit run streamlit_app.py</div>', unsafe_allow_html=True)
+st.code("streamlit run streamlit_app.py", language="bash")
 
 st.subheader("Algorithms")
-st.markdown(
-    '<div class="chip-row">'
-    + "".join([f'<span class="chip">{name}</span>' for name in ["EDF", "EDD", "RM", "DM"]])
-    + "</div>",
-    unsafe_allow_html=True,
-)
+st.caption("EDF · EDD · RM · DM")
 
 family_cards = st.columns(2)
 for index, (family, meta) in enumerate(ALGORITHM_FAMILIES.items()):
