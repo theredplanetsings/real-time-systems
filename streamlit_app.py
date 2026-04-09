@@ -94,9 +94,9 @@ html, body, [class*="css"] {
 
 [data-testid="stAppViewContainer"] {
     background:
-        radial-gradient(circle at 12% 8%, rgba(255, 122, 89, 0.08), transparent 34%),
-        radial-gradient(circle at 88% 18%, rgba(58, 124, 255, 0.09), transparent 36%),
-        linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+        radial-gradient(circle at 12% 8%, rgba(15, 23, 42, 0.08), transparent 34%),
+        radial-gradient(circle at 88% 18%, rgba(51, 65, 85, 0.1), transparent 36%),
+        linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%);
     color: #0f172a;
 }
 
@@ -106,20 +106,47 @@ html, body, [class*="css"] {
 }
 
 a {
-    color: #1d4ed8;
+    color: #1e40af;
 }
 
 a:hover {
-    color: #0f3d91;
+    color: #1e3a8a;
 }
 
 .hero {
     border: 1px solid rgba(15, 23, 42, 0.12);
-    background: linear-gradient(130deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 255, 0.98));
+    background: linear-gradient(130deg, rgba(248, 250, 252, 0.97), rgba(226, 232, 240, 0.95));
     border-radius: 18px;
     padding: 1.2rem 1.3rem;
     margin-bottom: 1rem;
     box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #e5e7eb 0%, #cbd5e1 100%);
+    border-right: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+[data-testid="stSidebar"] * {
+    color: #111827;
+}
+
+[data-testid="stSidebarNav"] a,
+[data-testid="stSidebarNav"] [data-testid="stSidebarNavLink"] {
+    color: #111827 !important;
+    border-radius: 10px;
+}
+
+[data-testid="stSidebarNav"] a:hover,
+[data-testid="stSidebarNav"] [data-testid="stSidebarNavLink"]:hover {
+    background: rgba(15, 23, 42, 0.08);
+    color: #0f172a !important;
+}
+
+[data-testid="stSidebarNav"] a span,
+[data-testid="stSidebarNav"] [data-testid="stSidebarNavLink"] span {
+    color: #111827 !important;
+    opacity: 1 !important;
 }
 
 .eyebrow {
@@ -170,7 +197,7 @@ a:hover {
     padding: 0.18rem 0.5rem;
     margin-right: 0.35rem;
     margin-bottom: 0.35rem;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(248, 250, 252, 0.95);
     color: #0f172a;
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
 }
@@ -179,7 +206,7 @@ a:hover {
     font-family: 'IBM Plex Mono', monospace;
     border: 1px solid rgba(15, 23, 42, 0.14);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(248, 250, 252, 0.95);
     color: #0f172a;
     padding: 0.65rem 0.75rem;
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
@@ -188,7 +215,7 @@ a:hover {
 .update-panel {
     border: 1px solid rgba(15, 23, 42, 0.14);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(248, 250, 252, 0.95);
     padding: 0.85rem 0.95rem;
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
@@ -233,7 +260,6 @@ a:hover {
 st.markdown(
     """
 <div class="hero">
-  <div class="eyebrow">Realtime Labs</div>
   <h1>Real-Time Scheduling Dashboard</h1>
   <p>Design task sets, stress-test schedulers, and inspect timing behavior with one unified control surface.</p>
 </div>
@@ -277,9 +303,9 @@ def render_sparkline(values: list[float], key: str) -> None:
         go.Scatter(
             y=values,
             mode="lines",
-            line={"color": "#2c6ed6", "width": 2},
+            line={"color": "#385b82", "width": 2},
             fill="tozeroy",
-            fillcolor="rgba(44, 110, 214, 0.14)",
+            fillcolor="rgba(56, 91, 130, 0.13)",
             hoverinfo="skip",
         )
     )
@@ -292,7 +318,6 @@ def render_sparkline(values: list[float], key: str) -> None:
         yaxis={"visible": False},
     )
     st.plotly_chart(fig, use_container_width=True, key=key)
-
 
 nav_col, updates_col = st.columns([2.2, 1])
 
