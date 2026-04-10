@@ -59,7 +59,7 @@ T3 = (3, 0, 20, 4, 20)
 	Input: a fixed-priority task set and a selected task under analysis.
 	Output: iterative demand-vs-time table and schedulable/unschedulable verdict for that task.
 - Priority Inversion page:
-	Input: tasks with shared resources and selected protocol (None/PIP/PCP/NPP).
+	Input: tasks with shared resources, selected protocol (None/PIP/PCP/NPP), and nested/non-nested resource access.
 	Output: protocol effect timeline showing blocking/inheritance/ceiling behavior.
 - Slack Stealing:
 	Input: periodic EDF baseline and aperiodic arrivals.

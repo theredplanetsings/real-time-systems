@@ -23,6 +23,7 @@ include_deadline = st.sidebar.checkbox("Include deadline", value=True)
 include_resources = st.sidebar.checkbox("Include resources", value=True)
 
 resource_order = st.sidebar.selectbox("Execution order", ["CPU then resources", "Resources then CPU"])
+resource_access_mode = st.sidebar.selectbox("Resource access", ["Non-nested", "Nested"])
 
 st.subheader("Task Set Γ")
 resource_count = 0
@@ -66,7 +67,14 @@ if st.button("Generate schedule"):
         st.warning("Time range end must be greater than start.")
         st.stop()
 
-    segments = simulate_uniprocessor(rows, int(range_end), "RM", protocol or "None", resource_order)
+    segments = simulate_uniprocessor(
+        rows,
+        int(range_end),
+        "RM",
+        protocol or "None",
+        resource_order,
+        resource_access_mode,
+    )
     st.caption(f"Segments generated: {len(segments)}")
     if not segments:
         st.warning("No scheduled jobs for the current range. Increase the range or check task parameters.")

@@ -38,6 +38,7 @@ class JobState:
     current_phase: str
     phase_queue: List[str]
     holding_resource: Optional[str] = None
+    held_resources: List[str] = field(default_factory=list)
     inherited_priority: Optional[int] = None
     non_preemptive: bool = False
 
@@ -767,6 +768,7 @@ def simulate_uniprocessor(
     algorithm: str,
     protocol: str,
     resource_order: str,
+    resource_access_mode: str = "Non-nested",
     mixed_criticality_mode: str = "none",
     adaptive_threshold: str = "high",
 ) -> List[Dict[str, object]]:
@@ -796,6 +798,33 @@ def simulate_uniprocessor(
     def should_keep_in_hi_mode(job: JobState) -> bool:
         return job_rank(job) >= threshold_rank
 
+    def has_future_resource_phase(job: JobState) -> bool:
+        for next_phase in job.phase_queue[1:]:
+            if next_phase == "cpu":
+                continue
+            if job.remaining_resources.get(next_phase, 0) > 0:
+                return True
+        return False
+
+    def acquire_resource(job: JobState, resource: str) -> None:
+        if resource not in job.held_resources:
+            job.held_resources.append(resource)
+        job.holding_resource = job.held_resources[-1] if job.held_resources else None
+
+    def release_resource(job: JobState, resource: str) -> None:
+        if resource in job.held_resources:
+            job.held_resources.remove(resource)
+        if resource_holders.get(resource) is job:
+            resource_holders[resource] = None
+        job.holding_resource = job.held_resources[-1] if job.held_resources else None
+
+    def release_all_resources(job: JobState) -> None:
+        for resource in list(job.held_resources):
+            if resource_holders.get(resource) is job:
+                resource_holders[resource] = None
+        job.held_resources.clear()
+        job.holding_resource = None
+
     def is_overload_risk(time_now: int) -> bool:
         if mixed_criticality_mode != "adaptive" or threshold_rank <= 0:
             return False
@@ -824,7 +853,7 @@ def simulate_uniprocessor(
             eligible = [
                 job
                 for job in candidate_jobs
-                if job.holding_resource is not None
+                if job.held_resources
                 or _priority_value(algorithm, job) < sys_ceiling
             ]
             if not eligible:
@@ -839,15 +868,16 @@ def simulate_uniprocessor(
             if holder is not None:
                 holder.inherited_priority = None
         for job in ready:
-            if job.current_phase != "cpu" and job.holding_resource is None:
-                holder = resource_holders.get(job.current_phase)
-                if holder is None:
-                    continue
-                blocked_prio = _priority_value(algorithm, job)
-                if holder.inherited_priority is None:
-                    holder.inherited_priority = blocked_prio
-                else:
-                    holder.inherited_priority = min(holder.inherited_priority, blocked_prio)
+            if job.current_phase == "cpu":
+                continue
+            holder = resource_holders.get(job.current_phase)
+            if holder is None or holder is job:
+                continue
+            blocked_prio = _priority_value(algorithm, job)
+            if holder.inherited_priority is None:
+                holder.inherited_priority = blocked_prio
+            else:
+                holder.inherited_priority = min(holder.inherited_priority, blocked_prio)
 
     def effective_priority(job: JobState) -> int:
         base = _priority_value(algorithm, job)
@@ -925,7 +955,7 @@ def simulate_uniprocessor(
                         current = None
                         continue
                 resource_holders[resource] = current
-                current.holding_resource = resource
+                acquire_resource(current, resource)
                 if protocol == "NPP":
                     current.non_preemptive = True
             elif holder is not current:
@@ -976,10 +1006,15 @@ def simulate_uniprocessor(
         )
 
         if phase != "cpu" and resource is not None and current.remaining_resources[resource] == 0:
-            resource_holders[resource] = None
-            current.holding_resource = None
+            if resource_access_mode == "Nested" and has_future_resource_phase(current):
+                pass
+            elif resource_access_mode == "Nested":
+                release_all_resources(current)
+            else:
+                release_resource(current, resource)
 
         if current.is_complete:
+            release_all_resources(current)
             current.non_preemptive = False
             current = None
 
@@ -1156,6 +1191,7 @@ def simulate_partitioned(
     metric: str,
     protocol: str = "None",
     resource_order: str = "CPU then resources",
+    resource_access_mode: str = "Non-nested",
     mixed_criticality_mode: str = "none",
     adaptive_threshold: str = "high",
 ) -> Tuple[List[Dict[str, object]], List[float], bool]:
@@ -1171,6 +1207,7 @@ def simulate_partitioned(
             algorithm,
             protocol,
             resource_order,
+            resource_access_mode,
             mixed_criticality_mode=mixed_criticality_mode,
             adaptive_threshold=adaptive_threshold,
         )

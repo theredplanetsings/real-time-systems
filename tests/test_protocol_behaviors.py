@@ -46,3 +46,29 @@ def test_pip_runs_without_crashing_and_emits_segments() -> None:
     ]
     segments = simulate_uniprocessor(tasks, horizon=9, algorithm="RM", protocol="PIP", resource_order="Resources then CPU")
     assert len(segments) > 0
+
+
+def test_nested_resource_access_holds_earlier_resources_across_later_phases() -> None:
+    tasks = [
+        _task(1, period=10, computation=4, resources={"A": 1, "B": 2}, phase=0),
+        _task(2, period=5, computation=1, resources={"A": 1}, phase=1),
+    ]
+
+    non_nested = simulate_uniprocessor(
+        tasks,
+        horizon=6,
+        algorithm="RM",
+        protocol="None",
+        resource_order="Resources then CPU",
+        resource_access_mode="Non-nested",
+    )
+    nested = simulate_uniprocessor(
+        tasks,
+        horizon=6,
+        algorithm="RM",
+        protocol="None",
+        resource_order="Resources then CPU",
+        resource_access_mode="Nested",
+    )
+
+    assert _count_blocked(nested) > _count_blocked(non_nested)
