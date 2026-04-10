@@ -5,7 +5,7 @@ Real-time scheduling examples, analysis pages, and interactive plots in a Stream
 The app supports task-set authoring, schedulability checks, schedule generation, and CSV/PNG export. It also covers several non-obvious workflow pages beyond the main explorer.
 
 The dashboard home page now includes a styled hero, data-driven navigation cards, compact sparkline previews, and a Recent Updates panel generated from a single source list.
-The latest home-page pass also tightened the color palette so text and controls are easier to read.
+The latest home-page pass also tightened the colour palette so text and controls are easier to read.
 
 ### Main Pages
 - `pages/00_Algorithm_Explorer.py`: Primary workflow for EDF, EDD, RM, and DM variants.
