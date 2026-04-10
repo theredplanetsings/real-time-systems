@@ -24,6 +24,7 @@ The latest home-page pass also tightened the colour palette so text and controls
 - Shared validation clamps unsafe phase, period, computation, deadline, resource, and mixed-criticality values before simulation.
 - Algorithm Explorer supports mixed-criticality task sets with static or adaptive mode.
 - Compare Mode uses the shared algorithm registry, cached plots, miss-detail reporting, and CSV/JSON task-set export.
+- Compare Mode now supports nested/non-nested resource access options for uniprocessor and partitioned runs.
 - Resource-aware protocols are available where they apply: None, PIP, PCP, and NPP.
 - Legacy flat pages remain archived under `legacy_pages/`.
 
@@ -73,9 +74,14 @@ T3 = (3, 0, 20, 4, 20)
 - Added a benchmark suite page for runtime and miss comparisons across canned workloads.
 - Added mixed-workload analysis for baseline EDF versus slack stealing.
 - Added mixed-criticality support in Algorithm Explorer with static and adaptive modes.
+- Added nested/non-nested resource access controls to Priority Inversion and Compare Mode.
 - Added dynamic sidebar controls, shared validation, cached plot helpers, and clearer PNG export errors.
 - Added a GitHub Actions CI workflow, dev tooling config, verification guide, and contribution guide.
 - Refreshed the dashboard home page contrast for improved readability.
+
+### PNG Export Notes
+- PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.
+- For Streamlit Cloud deployments, this repository includes `packages.txt` with `chromium` so PNG downloads work after redeploy.
 
 ### Mixed-Criticality (SMC/AMC)
 - Enable **Include criticality** in Algorithm Explorer.
