@@ -422,7 +422,14 @@ def schedule_png_bytes(fig) -> Tuple[Optional[bytes], Optional[str]]:
     try:
         return fig.to_image(format="png"), None
     except (ImportError, ModuleNotFoundError, RuntimeError, ValueError, OSError) as exc:
-        return None, f"PNG export failed: {exc}"
+        error_text = str(exc)
+        if "requires Google Chrome" in error_text:
+            return (
+                None,
+                "PNG export failed: Chrome/Chromium is missing. "
+                "For Streamlit Cloud, add 'chromium' to packages.txt and redeploy.",
+            )
+        return None, f"PNG export failed: {error_text}"
 
 def schedule_dataframe(segments: List[Dict[str, object]]) -> pd.DataFrame:
     return pd.DataFrame(segments)
