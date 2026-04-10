@@ -548,7 +548,7 @@ if st.button("Run Compare", type="primary"):
                 range_start=range_start,
                 range_end=range_end,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key=f"schedule_plot_{ts_index}_{alg_index}")
 
             png, png_error = schedule_png_bytes(fig)
             if png is not None:
