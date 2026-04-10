@@ -55,6 +55,7 @@ def _run_algorithm(
     horizon: int,
     protocol: str,
     resource_order: str,
+    resource_access_mode: str,
     processors: int,
     strategy: str,
     metric: str,
@@ -64,7 +65,14 @@ def _run_algorithm(
     family = info["family"]
 
     if mode == "uniprocessor":
-        segments = simulate_uniprocessor(tasks, horizon, family, protocol, resource_order)
+        segments = simulate_uniprocessor(
+            tasks,
+            horizon,
+            family,
+            protocol,
+            resource_order,
+            resource_access_mode,
+        )
         return segments, [], False
 
     if mode == "global":
@@ -94,6 +102,7 @@ def _run_algorithm(
         metric,
         protocol,
         resource_order,
+        resource_access_mode,
     )
     return segments, loads, overloaded
 
@@ -142,6 +151,7 @@ def _cached_run_algorithm(
     horizon: int,
     protocol: str,
     resource_order: str,
+    resource_access_mode: str,
     processors: int,
     strategy: str,
     metric: str,
@@ -153,6 +163,7 @@ def _cached_run_algorithm(
         horizon=horizon,
         protocol=protocol,
         resource_order=resource_order,
+        resource_access_mode=resource_access_mode,
         processors=processors,
         strategy=strategy,
         metric=metric,
@@ -208,6 +219,7 @@ for index, algorithm in enumerate(selected_algorithms):
     with st.expander(f"A{index + 1}: {algorithm} settings", expanded=False):
         protocol = "None"
         resource_order = "CPU then resources"
+        resource_access_mode = "Non-nested"
         processors = 1
         strategy = "First-fit decreasing"
         metric = "Utilisation"
@@ -224,6 +236,12 @@ for index, algorithm in enumerate(selected_algorithms):
                 ["CPU then resources", "Resources then CPU"],
                 index=0,
                 key=f"compare_resource_order_{index}",
+            )
+            resource_access_mode = st.selectbox(
+                "Resource access",
+                ["Non-nested", "Nested"],
+                index=0,
+                key=f"compare_resource_access_{index}",
             )
 
         if mode in {"global", "partitioned"}:
@@ -263,6 +281,7 @@ for index, algorithm in enumerate(selected_algorithms):
             "algorithm": algorithm,
             "protocol": protocol,
             "resource_order": resource_order,
+            "resource_access_mode": resource_access_mode,
             "processors": processors,
             "strategy": strategy,
             "metric": metric,
@@ -460,6 +479,7 @@ if st.button("Run Compare", type="primary"):
             horizon=range_end,
             protocol=str(runtime["protocol"]),
             resource_order=str(runtime["resource_order"]),
+            resource_access_mode=str(runtime["resource_access_mode"]),
             processors=int(runtime["processors"]),
             strategy=str(runtime["strategy"]),
             metric=str(runtime["metric"]),
