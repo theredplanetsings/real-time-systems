@@ -7,12 +7,14 @@ st.set_page_config(page_title="Benchmark Suite", layout="wide")
 st.title("Benchmark Suite")
 st.caption("Measure scheduler runtime and miss behavior on canned workloads.")
 
+
 def _scenario_harmonic() -> list[TaskSpec]:
     return [
         TaskSpec(1, 0, 4, 1, 4),
         TaskSpec(2, 0, 8, 2, 8),
         TaskSpec(3, 0, 16, 3, 16),
     ]
+
 
 def _scenario_tight() -> list[TaskSpec]:
     return [
@@ -21,12 +23,14 @@ def _scenario_tight() -> list[TaskSpec]:
         TaskSpec(3, 0, 12, 3, 6),
     ]
 
+
 def _scenario_mixed_phase() -> list[TaskSpec]:
     return [
         TaskSpec(1, 0, 5, 1, 5),
         TaskSpec(2, 1, 7, 2, 7),
         TaskSpec(3, 2, 11, 3, 11),
     ]
+
 
 def _misses(segments: list[dict[str, object]], horizon: int) -> int:
     seen: dict[str, float] = {}
@@ -47,9 +51,12 @@ def _misses(segments: list[dict[str, object]], horizon: int) -> int:
             misses += 1
     return misses
 
+
 HORIZON = int(st.sidebar.number_input("Horizon", min_value=20, max_value=2000, value=200, step=10))
 REPEATS = int(st.sidebar.number_input("Repeats", min_value=1, max_value=100, value=20, step=1))
-RESOURCE_ORDER = st.sidebar.selectbox("Resource order", ["CPU then resources", "Resources then CPU"], index=0)
+RESOURCE_ORDER = st.sidebar.selectbox(
+    "Resource order", ["CPU then resources", "Resources then CPU"], index=0
+)
 
 scenarios = {
     "Harmonic": _scenario_harmonic(),

@@ -1,14 +1,11 @@
 from __future__ import annotations
-
 import pandas as pd
-
 
 def _to_float(value: object, default: float = 0.0) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
         return default
-
 
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
     if not segments:
@@ -69,7 +66,6 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
         "cpu_or_resource_ticks": int(cpu_or_resource_ticks),
     }
 
-
 def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
     if not segments:
         return pd.DataFrame()
@@ -81,14 +77,10 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
         return pd.DataFrame()
 
     releases = (
-        df.groupby("job", as_index=False)["release"]
-        .min()
-        .rename(columns={"release": "Release"})
+        df.groupby("job", as_index=False)["release"].min().rename(columns={"release": "Release"})
     )
     deadlines = (
-        df.groupby("job", as_index=False)["deadline"]
-        .max()
-        .rename(columns={"deadline": "Deadline"})
+        df.groupby("job", as_index=False)["deadline"].max().rename(columns={"deadline": "Deadline"})
     )
 
     phase_series = df["phase"] if "phase" in df.columns else pd.Series("", index=df.index)
@@ -99,12 +91,12 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
     )
     completed_rows = df[(phase_series != "Blocked") & (remaining_series == 0)]
     completions = (
-        completed_rows.groupby("job", as_index=False)["end"]
-        .min()
-        .rename(columns={"end": "Finish"})
+        completed_rows.groupby("job", as_index=False)["end"].min().rename(columns={"end": "Finish"})
     )
 
-    details = releases.merge(deadlines, on="job", how="outer").merge(completions, on="job", how="left")
+    details = releases.merge(deadlines, on="job", how="outer").merge(
+        completions, on="job", how="left"
+    )
     details["Finish"] = pd.to_numeric(details["Finish"], errors="coerce")
     details["Deadline"] = pd.to_numeric(details["Deadline"], errors="coerce")
     details["Release"] = pd.to_numeric(details["Release"], errors="coerce")
@@ -118,10 +110,16 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
         return details
 
     details["Lateness"] = details.apply(
-        lambda row: (horizon - row["Deadline"]) if pd.isna(row["Finish"]) else (row["Finish"] - row["Deadline"]),
+        lambda row: (
+            (horizon - row["Deadline"])
+            if pd.isna(row["Finish"])
+            else (row["Finish"] - row["Deadline"])
+        ),
         axis=1,
     )
     details["Finish"] = details["Finish"].fillna("not finished")
 
     details = details.rename(columns={"job": "Job"})
-    return details[["Job", "Release", "Deadline", "Finish", "Lateness"]].sort_values(by=["Deadline", "Job"])
+    return details[["Job", "Release", "Deadline", "Finish", "Lateness"]].sort_values(
+        by=["Deadline", "Job"]
+    )

@@ -22,7 +22,10 @@ st.set_page_config(page_title="Compare Mode", layout="wide")
 st.title("Compare Mode")
 st.caption("Compare multiple algorithms across one or many task sets.")
 
-def _default_assignment_matrix(task_set_count: int, algorithm_count: int, unique_default: bool) -> pd.DataFrame:
+
+def _default_assignment_matrix(
+    task_set_count: int, algorithm_count: int, unique_default: bool
+) -> pd.DataFrame:
     rows = []
     for ts_index in range(task_set_count):
         row = {"Task Set": f"TS{ts_index + 1}"}
@@ -171,7 +174,9 @@ def _cached_run_algorithm(
 
 
 st.sidebar.header("Compare Setup")
-algorithm_count = int(st.sidebar.number_input("Algorithms to compare", min_value=2, max_value=8, value=2, step=1))
+algorithm_count = int(
+    st.sidebar.number_input("Algorithms to compare", min_value=2, max_value=8, value=2, step=1)
+)
 use_unique_default = st.sidebar.checkbox("Default to unique task set per algorithm", value=False)
 
 default_task_set_count = algorithm_count if use_unique_default else 1
@@ -186,9 +191,15 @@ task_set_count = int(
 )
 
 st.sidebar.subheader("Global Simulation Window")
-range_start = int(st.sidebar.number_input("Time range start", min_value=0, max_value=1000, value=0, step=1))
-range_end = int(st.sidebar.number_input("Time range end", min_value=1, max_value=1000, value=30, step=1))
-tick_step = int(st.sidebar.number_input("Time tick step", min_value=1, max_value=100, value=5, step=1))
+range_start = int(
+    st.sidebar.number_input("Time range start", min_value=0, max_value=1000, value=0, step=1)
+)
+range_end = int(
+    st.sidebar.number_input("Time range end", min_value=1, max_value=1000, value=30, step=1)
+)
+tick_step = int(
+    st.sidebar.number_input("Time tick step", min_value=1, max_value=100, value=5, step=1)
+)
 
 st.subheader("Algorithms")
 algorithm_cols = st.columns(min(algorithm_count, 4))
@@ -199,7 +210,11 @@ default_pick_order = ["RM", "EDF", "DM", "Global RM", "Global EDF", "Global DM"]
 
 for index in range(algorithm_count):
     col = algorithm_cols[index % len(algorithm_cols)]
-    default_name = default_pick_order[index] if index < len(default_pick_order) else algorithm_options[index % len(algorithm_options)]
+    default_name = (
+        default_pick_order[index]
+        if index < len(default_pick_order)
+        else algorithm_options[index % len(algorithm_options)]
+    )
     default_idx = algorithm_options.index(default_name)
     selected = col.selectbox(
         f"Algorithm A{index + 1}",
@@ -296,14 +311,45 @@ task_set_validation_errors: list[tuple[int, list[str]]] = []
 for ts_index in range(task_set_count):
     with st.expander(f"Task Set TS{ts_index + 1}", expanded=(ts_index == 0)):
         c1, c2, c3 = st.columns(3)
-        num_tasks = int(c1.number_input("Number of tasks", min_value=1, max_value=20, value=3, step=1, key=f"ts_n_{ts_index}"))
-        default_period = int(c2.number_input("Default period", min_value=1, max_value=500, value=10, step=1, key=f"ts_p_{ts_index}"))
-        default_comp = int(c3.number_input("Default computation", min_value=1, max_value=500, value=2, step=1, key=f"ts_c_{ts_index}"))
+        num_tasks = int(
+            c1.number_input(
+                "Number of tasks",
+                min_value=1,
+                max_value=20,
+                value=3,
+                step=1,
+                key=f"ts_n_{ts_index}",
+            )
+        )
+        default_period = int(
+            c2.number_input(
+                "Default period",
+                min_value=1,
+                max_value=500,
+                value=10,
+                step=1,
+                key=f"ts_p_{ts_index}",
+            )
+        )
+        default_comp = int(
+            c3.number_input(
+                "Default computation",
+                min_value=1,
+                max_value=500,
+                value=2,
+                step=1,
+                key=f"ts_c_{ts_index}",
+            )
+        )
 
         d1, d2, d3 = st.columns(3)
         include_phase = d1.checkbox("Include phase", value=True, key=f"ts_phase_{ts_index}")
-        include_deadline = d2.checkbox("Include deadline", value=True, key=f"ts_deadline_{ts_index}")
-        include_resources = d3.checkbox("Include resources", value=False, key=f"ts_resources_{ts_index}")
+        include_deadline = d2.checkbox(
+            "Include deadline", value=True, key=f"ts_deadline_{ts_index}"
+        )
+        include_resources = d3.checkbox(
+            "Include resources", value=False, key=f"ts_resources_{ts_index}"
+        )
 
         default_phase = 0
         default_deadline = default_period
@@ -411,7 +457,9 @@ assignment_df = st.session_state["compare_assignment_df"].copy()
 # Keep matrix aligned with current dimensions.
 assignment_df = assignment_df.iloc[:task_set_count].copy()
 if len(assignment_df) < task_set_count:
-    missing = _default_assignment_matrix(task_set_count - len(assignment_df), algorithm_count, use_unique_default)
+    missing = _default_assignment_matrix(
+        task_set_count - len(assignment_df), algorithm_count, use_unique_default
+    )
     start_idx = len(assignment_df)
     missing["Task Set"] = [f"TS{i + 1}" for i in range(start_idx, task_set_count)]
     assignment_df = pd.concat([assignment_df, missing], ignore_index=True)
@@ -422,9 +470,13 @@ for ts_index in range(task_set_count):
 for col_index in range(algorithm_count):
     base_col = f"A{col_index + 1}"
     if base_col not in assignment_df.columns:
-        assignment_df[base_col] = (not use_unique_default and col_index >= 0)
+        assignment_df[base_col] = not use_unique_default and col_index >= 0
 
-drop_cols = [c for c in assignment_df.columns if c not in {"Task Set"} | {f"A{i + 1}" for i in range(algorithm_count)}]
+drop_cols = [
+    c
+    for c in assignment_df.columns
+    if c not in {"Task Set"} | {f"A{i + 1}" for i in range(algorithm_count)}
+]
 if drop_cols:
     assignment_df = assignment_df.drop(columns=drop_cols)
 
@@ -523,7 +575,11 @@ if st.button("Run Compare", type="primary"):
                 "Executed Ticks": summary["cpu_or_resource_ticks"],
                 "Processors": int(runtime["processors"]),
                 "Protocol": runtime["protocol"],
-                "Frame Size": f"{result['loads'][0]:.0f}" if runtime["algorithm"] == "Cyclic Executive" and result["loads"] else "",
+                "Frame Size": (
+                    f"{result['loads'][0]:.0f}"
+                    if runtime["algorithm"] == "Cyclic Executive" and result["loads"]
+                    else ""
+                ),
             }
         )
 
@@ -548,7 +604,9 @@ if st.button("Run Compare", type="primary"):
                 range_start=range_start,
                 range_end=range_end,
             )
-            st.plotly_chart(fig, use_container_width=True, key=f"schedule_plot_{ts_index}_{alg_index}")
+            st.plotly_chart(
+                fig, use_container_width=True, key=f"schedule_plot_{ts_index}_{alg_index}"
+            )
 
             png, png_error = schedule_png_bytes(fig)
             if png is not None:
@@ -562,7 +620,9 @@ if st.button("Run Compare", type="primary"):
             elif png_error is not None:
                 st.warning(png_error)
 
-            ts_csv = build_task_dataframe(all_task_sets[ts_index], resource_names_for_task_set[ts_index])
+            ts_csv = build_task_dataframe(
+                all_task_sets[ts_index], resource_names_for_task_set[ts_index]
+            )
             export_cols = st.columns(2)
             with export_cols[0]:
                 st.download_button(

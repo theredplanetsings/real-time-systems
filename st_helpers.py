@@ -1,7 +1,6 @@
 from typing import List, Optional
 import streamlit as st
 import pandas as pd
-
 from rt_utils import (
     ALGORITHM_FAMILIES,
     PROTOCOLS,
@@ -21,6 +20,7 @@ from rt_utils import (
     variants_for_family,
 )
 
+
 def render_sidebar(_current_algorithm: str, show_protocol: bool = True) -> Optional[str]:
     protocol = None
     if show_protocol:
@@ -28,6 +28,7 @@ def render_sidebar(_current_algorithm: str, show_protocol: bool = True) -> Optio
         protocol = st.sidebar.selectbox("Resource protocol", PROTOCOLS)
 
     return protocol
+
 
 def render_task_inputs(
     num_tasks: int,
@@ -79,7 +80,9 @@ def render_task_inputs(
             row["computation"] = int(seed.get("computation", default_computation))
         if include_deadline:
             row["deadline"] = int(
-                seed.get("deadline", default_deadline if default_deadline is not None else default_period)
+                seed.get(
+                    "deadline", default_deadline if default_deadline is not None else default_period
+                )
             )
         if include_criticality:
             row["criticality"] = str(seed.get("criticality", default_criticality))
@@ -122,7 +125,9 @@ def render_task_inputs(
         df["criticality"] = crit_series.astype(str).str.strip()
         invalid_or_empty = (~df["criticality"].isin(allowed)) | (df["criticality"] == "")
         invalid_count = int(invalid_or_empty.sum())
-        df["criticality"] = df["criticality"].where(df["criticality"].isin(allowed), default_criticality)
+        df["criticality"] = df["criticality"].where(
+            df["criticality"].isin(allowed), default_criticality
+        )
         df["criticality"] = df["criticality"].replace("", default_criticality)
         if invalid_count > 0:
             validation_messages.append(
@@ -133,21 +138,23 @@ def render_task_inputs(
         if "wcet_lo" in df.columns:
             wcet_lo_series = pd.to_numeric(df["wcet_lo"], errors="coerce")
         else:
-            wcet_lo_series = pd.Series([default_wcet_lo or default_computation] * len(df), index=df.index)
+            wcet_lo_series = pd.Series(
+                [default_wcet_lo or default_computation] * len(df), index=df.index
+            )
 
         if "wcet_hi" in df.columns:
             wcet_hi_series = pd.to_numeric(df["wcet_hi"], errors="coerce")
         else:
-            wcet_hi_series = pd.Series([default_wcet_hi or default_computation] * len(df), index=df.index)
+            wcet_hi_series = pd.Series(
+                [default_wcet_hi or default_computation] * len(df), index=df.index
+            )
 
         wcet_lo_series = wcet_lo_series.fillna(default_wcet_lo or default_computation)
         wcet_hi_series = wcet_hi_series.fillna(default_wcet_hi or default_computation)
 
         lo_below_one = wcet_lo_series < 1
         if bool(lo_below_one.any()):
-            validation_messages.append(
-                f"Raised C-LO to 1 for {int(lo_below_one.sum())} row(s)."
-            )
+            validation_messages.append(f"Raised C-LO to 1 for {int(lo_below_one.sum())} row(s).")
         wcet_lo_series = wcet_lo_series.clip(lower=1)
 
         hi_below_lo = wcet_hi_series < wcet_lo_series
@@ -168,9 +175,7 @@ def render_task_inputs(
         phase_series = phase_series.fillna(default_phase)
         negative_phase = phase_series < 0
         if bool(negative_phase.any()):
-            validation_messages.append(
-                f"Raised phase to 0 for {int(negative_phase.sum())} row(s)."
-            )
+            validation_messages.append(f"Raised phase to 0 for {int(negative_phase.sum())} row(s).")
         df["phase"] = phase_series.clip(lower=0).astype(int)
 
     if include_period:
@@ -203,7 +208,9 @@ def render_task_inputs(
         if "deadline" in df.columns:
             deadline_series = pd.to_numeric(df["deadline"], errors="coerce")
         else:
-            deadline_series = pd.Series([default_deadline or default_period] * len(df), index=df.index)
+            deadline_series = pd.Series(
+                [default_deadline or default_period] * len(df), index=df.index
+            )
         deadline_series = deadline_series.fillna(default_deadline or default_period)
         invalid_deadline = deadline_series < 1
         if bool(invalid_deadline.any()):
@@ -244,14 +251,31 @@ def render_task_inputs(
         criticality = str(row.get("criticality", "")).strip() if include_criticality else ""
         wcet_lo = int(row.get("wcet_lo", computation)) if include_wcet else None
         wcet_lo = max(wcet_lo, 1) if wcet_lo is not None else None
-        wcet_hi = int(row.get("wcet_hi", wcet_lo if wcet_lo is not None else computation)) if include_wcet else None
+        wcet_hi = (
+            int(row.get("wcet_hi", wcet_lo if wcet_lo is not None else computation))
+            if include_wcet
+            else None
+        )
         if wcet_lo is not None and wcet_hi is not None and wcet_hi < wcet_lo:
             wcet_hi = wcet_lo
         if include_wcet and wcet_lo is not None:
             computation = wcet_lo
-        rows.append(TaskSpec(task_id, phase, period, computation, deadline, resources, criticality, wcet_lo, wcet_hi))
+        rows.append(
+            TaskSpec(
+                task_id,
+                phase,
+                period,
+                computation,
+                deadline,
+                resources,
+                criticality,
+                wcet_lo,
+                wcet_hi,
+            )
+        )
 
     return rows
+
 
 def render_schedulability(tasks: List[TaskSpec], algorithm: str, processors: int = 1) -> None:
     summary = schedulability_summary(tasks, algorithm, processors)
@@ -278,6 +302,7 @@ def render_schedulability(tasks: List[TaskSpec], algorithm: str, processors: int
     else:
         st.info(summary["detail"])
 
+
 @st.cache_data(show_spinner=False)
 def cached_schedule_figure(
     segments: list[dict[str, object]],
@@ -294,6 +319,7 @@ def cached_schedule_figure(
         range_end=range_end,
     )
 
+
 def render_algorithm_workbench(
     *,
     initial_family: Optional[str] = None,
@@ -302,7 +328,9 @@ def render_algorithm_workbench(
     show_retired_notice: bool = False,
 ) -> None:
     families = family_names()
-    default_family = initial_family or st.session_state.get("explorer_family", families[0] if families else "EDF")
+    default_family = initial_family or st.session_state.get(
+        "explorer_family", families[0] if families else "EDF"
+    )
     family_index = families.index(default_family) if default_family in families else 0
 
     if lock_selection:
@@ -327,9 +355,7 @@ def render_algorithm_workbench(
     st.session_state["explorer_variant"] = variant
 
     if show_retired_notice:
-        st.warning(
-            "This page is retired. Use Algorithm Explorer for the streamlined workflow."
-        )
+        st.warning("This page is retired. Use Algorithm Explorer for the streamlined workflow.")
 
     if len(variants) == 1 and not lock_selection:
         st.info("Only uniprocessor mode is currently available for this family.")
@@ -343,7 +369,9 @@ def render_algorithm_workbench(
     protocol = "None"
 
     st.sidebar.header("Task Set")
-    num_tasks = st.sidebar.number_input("Number of tasks", min_value=1, max_value=12, value=3, step=1)
+    num_tasks = st.sidebar.number_input(
+        "Number of tasks", min_value=1, max_value=12, value=3, step=1
+    )
 
     st.sidebar.subheader("Included Parameters")
     include_phase_default = mode == "uniprocessor"
@@ -394,7 +422,9 @@ def render_algorithm_workbench(
 
     if include_computation:
         default_computation = int(
-            st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+            st.sidebar.number_input(
+                "Default computation", min_value=1, max_value=200, value=2, step=1
+            )
         )
         default_wcet_lo = default_computation
         default_wcet_hi = default_computation
@@ -412,17 +442,23 @@ def render_algorithm_workbench(
 
     if include_resources:
         resource_count = int(
-            st.sidebar.number_input("Number of resources", min_value=1, max_value=4, value=1, step=1)
+            st.sidebar.number_input(
+                "Number of resources", min_value=1, max_value=4, value=1, step=1
+            )
         )
         default_resource_time = int(
-            st.sidebar.number_input("Default resource time", min_value=0, max_value=50, value=0, step=1)
+            st.sidebar.number_input(
+                "Default resource time", min_value=0, max_value=50, value=0, step=1
+            )
         )
         resource_names = [chr(ord("A") + i) for i in range(resource_count)]
 
     if include_criticality:
         if criticality_scale == "Low/Medium/High":
             criticality_choices = ["low", "medium", "high"]
-            default_criticality = st.sidebar.selectbox("Default criticality", criticality_choices, index=1)
+            default_criticality = st.sidebar.selectbox(
+                "Default criticality", criticality_choices, index=1
+            )
             adaptive_threshold = st.sidebar.selectbox(
                 "Adaptive threshold",
                 criticality_choices,
@@ -431,7 +467,9 @@ def render_algorithm_workbench(
             )
         else:
             criticality_choices = [chr(ord("A") + i) for i in range(26)]
-            default_criticality = st.sidebar.selectbox("Default criticality", criticality_choices, index=0)
+            default_criticality = st.sidebar.selectbox(
+                "Default criticality", criticality_choices, index=0
+            )
             adaptive_threshold = st.sidebar.selectbox(
                 "Adaptive threshold",
                 criticality_choices,
@@ -462,19 +500,25 @@ def render_algorithm_workbench(
     if include_resources and mode in {"uniprocessor", "partitioned"}:
         st.sidebar.subheader("Resource Protocol")
         protocol = st.sidebar.radio("Resource protocol", PROTOCOLS, index=0, horizontal=True)
-        resource_order = st.sidebar.selectbox("Execution order", ["CPU then resources", "Resources then CPU"])
+        resource_order = st.sidebar.selectbox(
+            "Execution order", ["CPU then resources", "Resources then CPU"]
+        )
 
     if mode == "global" and include_resources:
         st.sidebar.info("Global variants currently ignore resource execution segments.")
 
     processors = 1
     if mode in {"global", "partitioned"}:
-        processors = int(st.sidebar.number_input("Processors", min_value=1, max_value=8, value=2, step=1))
+        processors = int(
+            st.sidebar.number_input("Processors", min_value=1, max_value=8, value=2, step=1)
+        )
 
     strategy = "First-fit decreasing"
     metric = "Utilisation"
     if mode == "partitioned":
-        strategy = st.sidebar.selectbox("Partitioning strategy", ["First-fit decreasing", "Best-fit", "Worst-fit"])
+        strategy = st.sidebar.selectbox(
+            "Partitioning strategy", ["First-fit decreasing", "Best-fit", "Worst-fit"]
+        )
         metric = st.sidebar.selectbox("Packing metric", ["Utilisation", "Density"])
 
     st.subheader("Task Set Γ")
@@ -580,7 +624,9 @@ def render_algorithm_workbench(
         if overloaded:
             st.warning("Partitioning exceeds per-processor capacity. Adjust tasks or processors.")
         if not segments:
-            st.warning("No scheduled jobs for the current range. Increase the range or check task parameters.")
+            st.warning(
+                "No scheduled jobs for the current range. Increase the range or check task parameters."
+            )
 
         fig = cached_schedule_figure(
             segments,
@@ -607,7 +653,10 @@ def render_algorithm_workbench(
 
         png, png_error = schedule_png_bytes(fig)
         if png is None:
-            st.warning(png_error or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
+            st.warning(
+                png_error
+                or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`."
+            )
         else:
             st.download_button(
                 label="Download schedule PNG",

@@ -71,9 +71,18 @@ NAV_SECTIONS = [
 RECENT_UPDATES = [
     {"title": "Task presets", "detail": "One-click starter task sets in the builder."},
     {"title": "JSON import/export", "detail": "Task sets now move cleanly across tools and runs."},
-    {"title": "Seeded generation", "detail": "Reproducible randomized task creation with a fixed seed."},
-    {"title": "Miss detail table", "detail": "Compare Mode now explains exactly which jobs missed."},
-    {"title": "Scenario snapshots", "detail": "Save and reload named task-set states inside the builder."},
+    {
+        "title": "Seeded generation",
+        "detail": "Reproducible randomized task creation with a fixed seed.",
+    },
+    {
+        "title": "Miss detail table",
+        "detail": "Compare Mode now explains exactly which jobs missed.",
+    },
+    {
+        "title": "Scenario snapshots",
+        "detail": "Save and reload named task-set states inside the builder.",
+    },
 ]
 
 st.set_page_config(
@@ -83,7 +92,9 @@ st.set_page_config(
 )
 
 st.title("Real-Time Scheduling Dashboard")
-st.caption("Design task sets, stress-test schedulers, and inspect timing behavior with one unified control surface.")
+st.caption(
+    "Design task sets, stress-test schedulers, and inspect timing behavior with one unified control surface."
+)
 
 family_count = len(ALGORITHM_FAMILIES)
 variant_count = sum(len(meta.get("variants", {})) for meta in ALGORITHM_FAMILIES.values())

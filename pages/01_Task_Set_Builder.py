@@ -32,6 +32,7 @@ PRESET_TASK_SETS = {
     ],
 }
 
+
 def _normalize_imported_rows(raw_tasks: object) -> list[dict[str, int]]:
     if not isinstance(raw_tasks, list):
         return []
@@ -53,6 +54,7 @@ def _normalize_imported_rows(raw_tasks: object) -> list[dict[str, int]]:
             }
         )
     return normalized
+
 
 def _generate_seeded_rows(
     count: int,
@@ -94,16 +96,15 @@ def _scenario_bundle_bytes(rows, df, hyperperiod: int | None) -> bytes:
     }
     return json.dumps(payload, indent=2).encode("utf-8")
 
+
 st.set_page_config(page_title="Task Set Builder", layout="wide")
 
 st.title("Task Set Builder")
 
-st.markdown(
-    """
+st.markdown("""
 Create a custom task set and download it as CSV. Use the same structure on the
 algorithm pages to generate schedules.
-"""
-)
+""")
 
 render_sidebar("EDF", show_protocol=False)
 
@@ -112,7 +113,9 @@ if "builder_num_tasks" not in st.session_state:
     st.session_state["builder_num_tasks"] = 3
 
 preset_col, apply_col = st.columns([3, 1])
-selected_preset = preset_col.selectbox("Preset", ["Custom"] + list(PRESET_TASK_SETS.keys()), index=0)
+selected_preset = preset_col.selectbox(
+    "Preset", ["Custom"] + list(PRESET_TASK_SETS.keys()), index=0
+)
 if apply_col.button("Load preset") and selected_preset != "Custom":
     st.session_state["builder_seed_rows"] = PRESET_TASK_SETS[selected_preset]
     st.session_state["builder_num_tasks"] = len(PRESET_TASK_SETS[selected_preset])
@@ -130,12 +133,18 @@ with st.expander("Seeded generator", expanded=False):
     g1, g2, g3 = st.columns(3)
     random_seed = int(g1.number_input("Seed", min_value=0, max_value=999_999, value=42, step=1))
     min_period = int(g2.number_input("Min period", min_value=1, max_value=200, value=5, step=1))
-    max_period = int(g3.number_input("Max period", min_value=min_period, max_value=500, value=25, step=1))
+    max_period = int(
+        g3.number_input("Max period", min_value=min_period, max_value=500, value=25, step=1)
+    )
 
     g4, g5 = st.columns(2)
-    min_computation = int(g4.number_input("Min computation", min_value=1, max_value=200, value=1, step=1))
+    min_computation = int(
+        g4.number_input("Min computation", min_value=1, max_value=200, value=1, step=1)
+    )
     max_computation = int(
-        g5.number_input("Max computation", min_value=min_computation, max_value=200, value=6, step=1)
+        g5.number_input(
+            "Max computation", min_value=min_computation, max_value=200, value=6, step=1
+        )
     )
 
     if st.button("Generate seeded task set"):
@@ -156,7 +165,9 @@ include_computation = st.checkbox("Include computation", value=True)
 include_deadline = st.checkbox("Include deadline", value=True)
 include_resources = st.checkbox("Include resources", value=False)
 
-st.caption("This page only builds task sets. Execution order is configured on the analysis pages that use it.")
+st.caption(
+    "This page only builds task sets. Execution order is configured on the analysis pages that use it."
+)
 
 uploaded_json = st.file_uploader("Import task set JSON", type=["json"])
 if uploaded_json is not None:
@@ -175,14 +186,20 @@ if uploaded_json is not None:
             st.error("Invalid JSON format.")
 
 default_period = st.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
-default_computation = st.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+default_computation = st.number_input(
+    "Default computation", min_value=1, max_value=200, value=2, step=1
+)
 hyperperiod_threshold = int(
-    st.number_input("Hyperperiod warning threshold", min_value=1, max_value=100_000, value=1000, step=1)
+    st.number_input(
+        "Hyperperiod warning threshold", min_value=1, max_value=100_000, value=1000, step=1
+    )
 )
 
 resource_count = 0
 if include_resources:
-    resource_count = st.number_input("Number of resources", min_value=1, max_value=4, value=1, step=1)
+    resource_count = st.number_input(
+        "Number of resources", min_value=1, max_value=4, value=1, step=1
+    )
 
 resource_names = [chr(ord("A") + i) for i in range(resource_count)]
 
@@ -245,7 +262,9 @@ hyperperiod = None
 if periods:
     hyperperiod = compute_hyperperiod(periods)
     if hyperperiod > hyperperiod_threshold:
-        st.warning(f"Hyperperiod is {hyperperiod}, which exceeds the threshold {hyperperiod_threshold}.")
+        st.warning(
+            f"Hyperperiod is {hyperperiod}, which exceeds the threshold {hyperperiod_threshold}."
+        )
     else:
         st.caption(f"Hyperperiod: {hyperperiod}")
 

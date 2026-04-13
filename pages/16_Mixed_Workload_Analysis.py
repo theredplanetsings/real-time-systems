@@ -17,27 +17,35 @@ st.title("Mixed Workload Analysis")
 st.caption("Compare baseline periodic EDF against slack stealing on the same workload.")
 
 with st.expander("How to use this page", expanded=True):
-    st.markdown(
-        """
+    st.markdown("""
         1. Define the periodic task set in the sidebar.
         2. Add any aperiodic jobs you want to test against slack.
         3. Run the analysis to compare the periodic EDF baseline with slack stealing.
-        """
-    )
+        """)
     st.caption("Use the same horizon for both runs so the schedule and metrics stay aligned.")
 
 st.sidebar.header("Periodic Task Set")
-num_tasks = st.sidebar.number_input("Number of periodic tasks", min_value=1, max_value=12, value=3, step=1)
+num_tasks = st.sidebar.number_input(
+    "Number of periodic tasks", min_value=1, max_value=12, value=3, step=1
+)
 include_phase = st.sidebar.checkbox("Include phase", value=True)
 include_period = st.sidebar.checkbox("Include period", value=True)
 include_computation = st.sidebar.checkbox("Include computation", value=True)
 include_deadline = st.sidebar.checkbox("Include deadline", value=True)
 
-default_phase = int(st.sidebar.number_input("Default phase", min_value=0, max_value=200, value=0, step=1))
-default_period = int(st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1))
-default_computation = int(st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1))
+default_phase = int(
+    st.sidebar.number_input("Default phase", min_value=0, max_value=200, value=0, step=1)
+)
+default_period = int(
+    st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
+)
+default_computation = int(
+    st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+)
 default_deadline = int(
-    st.sidebar.number_input("Default deadline", min_value=1, max_value=200, value=default_period, step=1)
+    st.sidebar.number_input(
+        "Default deadline", min_value=1, max_value=200, value=default_period, step=1
+    )
 )
 
 st.subheader("Periodic Task Set Γ")
@@ -59,7 +67,9 @@ periodic_rows = render_task_inputs(
 st.subheader("Periodic Feasibility")
 render_schedulability(periodic_rows, "EDF")
 st.sidebar.header("Aperiodic Jobs")
-num_aperiodic = int(st.sidebar.number_input("Number of aperiodic jobs", min_value=0, max_value=12, value=3, step=1))
+num_aperiodic = int(
+    st.sidebar.number_input("Number of aperiodic jobs", min_value=0, max_value=12, value=3, step=1)
+)
 aperiodic_defaults = []
 for index in range(num_aperiodic):
     st.sidebar.markdown(f"**Aperiodic job {index + 1}**")
@@ -104,13 +114,21 @@ for index in range(num_aperiodic):
 
 if aperiodic_defaults:
     st.subheader("Aperiodic Queue")
-    ap_df = pd.DataFrame(aperiodic_defaults).rename(columns={"job_id": "aperiodic_id", "deadline": "absolute_deadline"})
+    ap_df = pd.DataFrame(aperiodic_defaults).rename(
+        columns={"job_id": "aperiodic_id", "deadline": "absolute_deadline"}
+    )
     st.dataframe(ap_df, use_container_width=True)
 
 st.sidebar.header("Analysis Window")
-range_start = int(st.sidebar.number_input("Time range start", min_value=0, max_value=500, value=0, step=1))
-range_end = int(st.sidebar.number_input("Time range end", min_value=1, max_value=500, value=40, step=1))
-tick_step = int(st.sidebar.number_input("Time tick step", min_value=1, max_value=50, value=5, step=1))
+range_start = int(
+    st.sidebar.number_input("Time range start", min_value=0, max_value=500, value=0, step=1)
+)
+range_end = int(
+    st.sidebar.number_input("Time range end", min_value=1, max_value=500, value=40, step=1)
+)
+tick_step = int(
+    st.sidebar.number_input("Time tick step", min_value=1, max_value=50, value=5, step=1)
+)
 
 
 def _summarize_segments(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
@@ -145,7 +163,12 @@ def _summarize_segments(segments: list[dict[str, object]], horizon: int) -> dict
         if deadline <= horizon and job_id not in completions:
             deadline_misses += 1
 
-    return {"jobs": int(jobs), "completed": int(len(completions)), "deadline_misses": int(deadline_misses), "ticks": int(ticks)}
+    return {
+        "jobs": int(jobs),
+        "completed": int(len(completions)),
+        "deadline_misses": int(deadline_misses),
+        "ticks": int(ticks),
+    }
 
 
 def _summarize_aperiodic_jobs(stats_df: pd.DataFrame) -> dict[str, int]:
@@ -153,8 +176,11 @@ def _summarize_aperiodic_jobs(stats_df: pd.DataFrame) -> dict[str, int]:
         return {"jobs": 0, "completed": 0, "deadline_misses": 0}
 
     completed = int(stats_df["completed"].sum()) if "completed" in stats_df.columns else 0
-    deadline_misses = int(stats_df["deadline_missed"].sum()) if "deadline_missed" in stats_df.columns else 0
+    deadline_misses = (
+        int(stats_df["deadline_missed"].sum()) if "deadline_missed" in stats_df.columns else 0
+    )
     return {"jobs": int(len(stats_df)), "completed": completed, "deadline_misses": deadline_misses}
+
 
 if st.button("Run mixed workload analysis", type="primary"):
     if range_end <= range_start:
@@ -178,20 +204,32 @@ if st.button("Run mixed workload analysis", type="primary"):
             mime="text/csv",
         )
 
-    baseline_segments = simulate_uniprocessor(periodic_rows, range_end, "EDF", "None", "CPU then resources")
+    baseline_segments = simulate_uniprocessor(
+        periodic_rows, range_end, "EDF", "None", "CPU then resources"
+    )
     slack_segments = simulate_slack_stealing(periodic_rows, aperiodic_defaults, range_end)
-    slack_metrics, slack_stats_df = slack_stealing_stats(slack_segments, aperiodic_defaults, range_end)
+    slack_metrics, slack_stats_df = slack_stealing_stats(
+        slack_segments, aperiodic_defaults, range_end
+    )
     baseline_summary = _summarize_segments(baseline_segments, range_end)
     aperiodic_summary = _summarize_aperiodic_jobs(slack_stats_df)
 
     st.subheader("Comparison Summary")
-    st.caption("Baseline EDF measures the periodic workload; slack-stealing metrics reflect aperiodic jobs reclaimed in idle time.")
+    st.caption(
+        "Baseline EDF measures the periodic workload; slack-stealing metrics reflect aperiodic jobs reclaimed in idle time."
+    )
     summary_cols = st.columns(6)
     summary_cols[0].metric("Utilisation", f"{utilisation(periodic_rows):.3f}")
     summary_cols[1].metric("Density", f"{density(periodic_rows):.3f}")
-    summary_cols[2].metric("Periodic EDF", f"{baseline_summary['completed']}/{baseline_summary['jobs']}")
-    summary_cols[3].metric("Aperiodic jobs", f"{aperiodic_summary['completed']}/{aperiodic_summary['jobs']}")
-    summary_cols[4].metric("Aperiodic completion", f"{100.0 * slack_metrics['completion_ratio']:.1f}%")
+    summary_cols[2].metric(
+        "Periodic EDF", f"{baseline_summary['completed']}/{baseline_summary['jobs']}"
+    )
+    summary_cols[3].metric(
+        "Aperiodic jobs", f"{aperiodic_summary['completed']}/{aperiodic_summary['jobs']}"
+    )
+    summary_cols[4].metric(
+        "Aperiodic completion", f"{100.0 * slack_metrics['completion_ratio']:.1f}%"
+    )
     summary_cols[5].metric("Slack used", f"{slack_metrics['total_slack_used']:.0f}")
 
     st.dataframe(
