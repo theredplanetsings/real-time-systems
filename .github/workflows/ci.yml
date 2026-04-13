@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -24,9 +24,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
+          pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: python -m ruff check --select F,B pages tests streamlit_app.py st_helpers.py compare_utils.py
+
+      - name: Format check
+        run: python -m black --check pages tests streamlit_app.py st_helpers.py compare_utils.py
 
       - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}
-        run: python -m pytest -q
+        run: python -m pytest -q tests
