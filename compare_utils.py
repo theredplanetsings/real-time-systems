@@ -1,11 +1,13 @@
 from __future__ import annotations
 import pandas as pd
 
+
 def _to_float(value: object, default: float = 0.0) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
         return default
+
 
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
     if not segments:
@@ -65,6 +67,7 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
         "blocked_ticks": int(blocked_ticks),
         "cpu_or_resource_ticks": int(cpu_or_resource_ticks),
     }
+
 
 def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
     if not segments:

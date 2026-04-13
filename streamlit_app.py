@@ -126,6 +126,7 @@ st.markdown(
     "Core families span EDF, EDD, RM, and DM variants plus focused analysis modules.",
 )
 
+
 def render_sparkline(values: list[float], key: str) -> None:
     fig = go.Figure(
         go.Scatter(
@@ -146,6 +147,7 @@ def render_sparkline(values: list[float], key: str) -> None:
         yaxis={"visible": False},
     )
     st.plotly_chart(fig, use_container_width=True, key=key)
+
 
 nav_col, updates_col = st.columns([2.2, 1])
 
