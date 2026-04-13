@@ -70,3 +70,20 @@ def test_summarize_run_ignores_rows_without_job() -> None:
     result = summarize_run(segments, horizon=2)
     assert result["jobs_seen"] == 0
     assert result["jobs_completed"] == 0
+
+
+def test_deadline_miss_details_handles_missing_phase_and_remaining() -> None:
+    segments = [
+        {"job": "7.0", "release": 0, "deadline": 1, "end": 2},
+    ]
+    details = deadline_miss_details(segments, horizon=3)
+    assert len(details) == 1
+    assert details.iloc[0]["Finish"] == "not finished"
+
+
+def test_deadline_miss_details_requires_release_and_deadline() -> None:
+    segments = [
+        {"job": "8.0", "phase": "CPU", "remaining": 0, "end": 2},
+    ]
+    details = deadline_miss_details(segments, horizon=3)
+    assert details.empty
