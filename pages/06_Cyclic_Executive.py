@@ -1,7 +1,11 @@
 import streamlit as st
-from st_helpers import cached_schedule_figure, render_schedulability, render_sidebar, render_task_inputs
+from st_helpers import (
+    cached_schedule_figure,
+    render_schedulability,
+    render_sidebar,
+    render_task_inputs,
+)
 from rt_utils import (
-    TaskSpec,
     build_task_dataframe,
     cyclic_executive_frames,
     cyclic_executive_schedule,
@@ -20,10 +24,16 @@ num_tasks = st.sidebar.number_input("Number of tasks", min_value=1, max_value=12
 include_phase = st.sidebar.checkbox("Include phase", value=False)
 include_period = st.sidebar.checkbox("Include period", value=True)
 include_computation = st.sidebar.checkbox("Include computation", value=True)
-resource_order = st.sidebar.selectbox("Execution order", ["CPU then resources", "Resources then CPU"])
+resource_order = st.sidebar.selectbox(
+    "Execution order", ["CPU then resources", "Resources then CPU"]
+)
 
-default_period = st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
-default_computation = st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+default_period = st.sidebar.number_input(
+    "Default period", min_value=1, max_value=200, value=10, step=1
+)
+default_computation = st.sidebar.number_input(
+    "Default computation", min_value=1, max_value=200, value=2, step=1
+)
 
 st.subheader("Task Set Γ")
 rows = render_task_inputs(
@@ -56,9 +66,15 @@ if st.button("Analyse frame sizes"):
     st.write("Valid frame sizes:", valid)
 
     if valid:
-        frame = st.number_input("Frame size", min_value=1, max_value=hyper, value=int(valid[0]), step=1)
-        range_start = st.number_input("Time range start", min_value=0, max_value=hyper, value=0, step=1)
-        range_end = st.number_input("Time range end", min_value=1, max_value=hyper, value=min(25, hyper), step=1)
+        frame = st.number_input(
+            "Frame size", min_value=1, max_value=hyper, value=int(valid[0]), step=1
+        )
+        range_start = st.number_input(
+            "Time range start", min_value=0, max_value=hyper, value=0, step=1
+        )
+        range_end = st.number_input(
+            "Time range end", min_value=1, max_value=hyper, value=min(25, hyper), step=1
+        )
         tick_step = st.number_input("Time tick step", min_value=1, max_value=50, value=5, step=1)
 
         if int(range_end) <= int(range_start):
@@ -68,7 +84,9 @@ if st.button("Analyse frame sizes"):
         segments = cyclic_executive_schedule(rows, int(frame))
         st.caption(f"Segments generated: {len(segments)}")
         if not segments:
-            st.warning("No scheduled jobs for the current frame. Adjust the frame size or task parameters.")
+            st.warning(
+                "No scheduled jobs for the current frame. Adjust the frame size or task parameters."
+            )
         fig = cached_schedule_figure(
             segments,
             "Cyclic Executive Schedule",
@@ -80,7 +98,10 @@ if st.button("Analyse frame sizes"):
 
         png, png_error = schedule_png_bytes(fig)
         if png is None:
-            st.warning(png_error or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
+            st.warning(
+                png_error
+                or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`."
+            )
         else:
             st.download_button(
                 label="Download schedule PNG",

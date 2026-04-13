@@ -1,7 +1,11 @@
 import streamlit as st
-from st_helpers import cached_schedule_figure, render_schedulability, render_sidebar, render_task_inputs
+from st_helpers import (
+    cached_schedule_figure,
+    render_schedulability,
+    render_sidebar,
+    render_task_inputs,
+)
 from rt_utils import (
-    TaskSpec,
     build_task_dataframe,
     schedule_png_bytes,
     simulate_uniprocessor,
@@ -9,9 +13,7 @@ from rt_utils import (
 )
 
 st.set_page_config(page_title="Priority Inversion", layout="wide")
-
 st.title("Priority Inversion Demo")
-
 protocol = render_sidebar("Priority Inversion", show_protocol=True)
 
 st.sidebar.header("Task Set")
@@ -21,17 +23,24 @@ include_period = st.sidebar.checkbox("Include period", value=True)
 include_computation = st.sidebar.checkbox("Include computation", value=True)
 include_deadline = st.sidebar.checkbox("Include deadline", value=True)
 include_resources = st.sidebar.checkbox("Include resources", value=True)
-
-resource_order = st.sidebar.selectbox("Execution order", ["CPU then resources", "Resources then CPU"])
+resource_order = st.sidebar.selectbox(
+    "Execution order", ["CPU then resources", "Resources then CPU"]
+)
 resource_access_mode = st.sidebar.selectbox("Resource access", ["Non-nested", "Nested"])
 
 st.subheader("Task Set Γ")
 resource_count = 0
 if include_resources:
-    resource_count = st.sidebar.number_input("Number of resources", min_value=1, max_value=4, value=1, step=1)
+    resource_count = st.sidebar.number_input(
+        "Number of resources", min_value=1, max_value=4, value=1, step=1
+    )
 
-default_period = st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
-default_computation = st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+default_period = st.sidebar.number_input(
+    "Default period", min_value=1, max_value=200, value=10, step=1
+)
+default_computation = st.sidebar.number_input(
+    "Default computation", min_value=1, max_value=200, value=2, step=1
+)
 
 resource_names = [chr(ord("A") + i) for i in range(resource_count)]
 rows = render_task_inputs(
@@ -77,7 +86,9 @@ if st.button("Generate schedule"):
     )
     st.caption(f"Segments generated: {len(segments)}")
     if not segments:
-        st.warning("No scheduled jobs for the current range. Increase the range or check task parameters.")
+        st.warning(
+            "No scheduled jobs for the current range. Increase the range or check task parameters."
+        )
     label = f"Priority Inversion ({protocol or 'None'})"
     fig = cached_schedule_figure(
         segments,
@@ -90,7 +101,10 @@ if st.button("Generate schedule"):
 
     png, png_error = schedule_png_bytes(fig)
     if png is None:
-        st.warning(png_error or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
+        st.warning(
+            png_error
+            or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`."
+        )
     else:
         st.download_button(
             label="Download schedule PNG",

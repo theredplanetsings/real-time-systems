@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from st_helpers import cached_schedule_figure, render_schedulability, render_task_inputs
 from rt_utils import (
-    TaskSpec,
     build_task_dataframe,
     schedule_png_bytes,
     simulate_slack_stealing,
@@ -12,7 +11,9 @@ from rt_utils import (
 
 st.set_page_config(page_title="Slack Stealing", layout="wide")
 st.title("Slack Stealing")
-st.caption("Periodic EDF tasks run first; ready aperiodic jobs reclaim slack when periodic demand is idle.")
+st.caption(
+    "Periodic EDF tasks run first; ready aperiodic jobs reclaim slack when periodic demand is idle."
+)
 st.sidebar.header("Mode")
 policy = st.sidebar.selectbox(
     "Slack policy",
@@ -21,17 +22,27 @@ policy = st.sidebar.selectbox(
 )
 st.sidebar.caption(f"Policy: {policy}")
 st.sidebar.header("Periodic Task Set")
-num_tasks = st.sidebar.number_input("Number of periodic tasks", min_value=1, max_value=12, value=3, step=1)
+num_tasks = st.sidebar.number_input(
+    "Number of periodic tasks", min_value=1, max_value=12, value=3, step=1
+)
 include_phase = st.sidebar.checkbox("Include phase", value=True)
 include_period = st.sidebar.checkbox("Include period", value=True)
 include_computation = st.sidebar.checkbox("Include computation", value=True)
 include_deadline = st.sidebar.checkbox("Include deadline", value=True)
 
-default_phase = int(st.sidebar.number_input("Default phase", min_value=0, max_value=200, value=0, step=1))
-default_period = int(st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1))
-default_computation = int(st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1))
+default_phase = int(
+    st.sidebar.number_input("Default phase", min_value=0, max_value=200, value=0, step=1)
+)
+default_period = int(
+    st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
+)
+default_computation = int(
+    st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+)
 default_deadline = int(
-    st.sidebar.number_input("Default deadline", min_value=1, max_value=200, value=default_period, step=1)
+    st.sidebar.number_input(
+        "Default deadline", min_value=1, max_value=200, value=default_period, step=1
+    )
 )
 
 st.subheader("Periodic Task Set Γ")
@@ -53,7 +64,9 @@ periodic_rows = render_task_inputs(
 st.subheader("Periodic Feasibility")
 render_schedulability(periodic_rows, "EDF")
 st.sidebar.header("Aperiodic Jobs")
-num_aperiodic = int(st.sidebar.number_input("Number of aperiodic jobs", min_value=0, max_value=12, value=3, step=1))
+num_aperiodic = int(
+    st.sidebar.number_input("Number of aperiodic jobs", min_value=0, max_value=12, value=3, step=1)
+)
 aperiodic_defaults = []
 for i in range(num_aperiodic):
     st.sidebar.markdown(f"**Aperiodic job {i + 1}**")
@@ -131,7 +144,9 @@ if st.button("Generate Slack Stealing schedule"):
     segments = simulate_slack_stealing(periodic_rows, aperiodic_defaults, int(range_end))
     st.caption(f"Segments generated: {len(segments)}")
     if not segments:
-        st.warning("No scheduled jobs for the current range. Increase the range or check task parameters.")
+        st.warning(
+            "No scheduled jobs for the current range. Increase the range or check task parameters."
+        )
 
     fig = cached_schedule_figure(
         segments,
@@ -159,7 +174,10 @@ if st.button("Generate Slack Stealing schedule"):
 
     png, png_error = schedule_png_bytes(fig)
     if png is None:
-        st.warning(png_error or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`.")
+        st.warning(
+            png_error
+            or "PNG export requires Kaleido. Install it with `pip install --upgrade kaleido`."
+        )
     else:
         st.download_button(
             label="Download schedule PNG",

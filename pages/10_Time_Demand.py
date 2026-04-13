@@ -1,10 +1,9 @@
 import streamlit as st
 import plotly.express as px
 from st_helpers import render_schedulability, render_sidebar, render_task_inputs
-from rt_utils import TaskSpec, build_task_dataframe, task_csv_bytes, time_demand_analysis
+from rt_utils import build_task_dataframe, task_csv_bytes, time_demand_analysis
 
 st.set_page_config(page_title="Time Demand", layout="wide")
-
 st.title("Time Demand Analysis")
 
 render_sidebar("Time Demand", show_protocol=True)
@@ -14,10 +13,16 @@ num_tasks = st.sidebar.number_input("Number of tasks", min_value=1, max_value=12
 include_phase = st.sidebar.checkbox("Include phase", value=False)
 include_period = st.sidebar.checkbox("Include period", value=True)
 include_computation = st.sidebar.checkbox("Include computation", value=True)
-resource_order = st.sidebar.selectbox("Execution order", ["CPU then resources", "Resources then CPU"])
+resource_order = st.sidebar.selectbox(
+    "Execution order", ["CPU then resources", "Resources then CPU"]
+)
 
-default_period = st.sidebar.number_input("Default period", min_value=1, max_value=200, value=10, step=1)
-default_computation = st.sidebar.number_input("Default computation", min_value=1, max_value=200, value=2, step=1)
+default_period = st.sidebar.number_input(
+    "Default period", min_value=1, max_value=200, value=10, step=1
+)
+default_computation = st.sidebar.number_input(
+    "Default computation", min_value=1, max_value=200, value=2, step=1
+)
 
 st.subheader("Task Set Γ")
 rows = render_task_inputs(
