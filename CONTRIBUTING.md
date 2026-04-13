@@ -4,7 +4,7 @@
 
 1. Create a branch from `main`.
 2. Make focused, test-backed changes.
-3. Run `python3 -m pytest -q tests` locally (or `make test`).
+3. Run `make check` locally (or run lint/format/test commands directly).
 4. Open a pull request with a clear summary.
 
 ## Commit Convention
@@ -31,5 +31,16 @@ Examples:
 ```bash
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
-python3 -m pytest -q tests
+make check
 ```
+
+## Pre-commit
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
+This runs the same style and formatting checks used in CI before each commit.
+
+Note: `make check` currently enforces defect-focused Ruff checks (`F`/`B`) plus formatting on actively maintained app and test paths.
