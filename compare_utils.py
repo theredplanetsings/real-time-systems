@@ -3,6 +3,13 @@ from __future__ import annotations
 import pandas as pd
 
 
+def _to_float(value: object, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
     if not segments:
         return {
@@ -35,15 +42,15 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
         job_id = str(row.get("job", ""))
         if not job_id:
             continue
-        deadline = float(row.get("deadline", 0))
+        deadline = _to_float(row.get("deadline", 0), 0.0)
         deadlines[job_id] = deadline
 
         if row.get("phase") == "Blocked":
             continue
 
-        remaining = float(row.get("remaining", 1))
+        remaining = _to_float(row.get("remaining", 1), 1.0)
         if remaining == 0:
-            end_time = float(row.get("end", 0))
+            end_time = _to_float(row.get("end", 0), 0.0)
             if job_id not in completions or end_time < completions[job_id][0]:
                 completions[job_id] = (end_time, deadline)
 
