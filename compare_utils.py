@@ -77,6 +77,8 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
     df = pd.DataFrame(segments)
     if df.empty or "job" not in df.columns:
         return pd.DataFrame()
+    if "release" not in df.columns or "deadline" not in df.columns:
+        return pd.DataFrame()
 
     releases = (
         df.groupby("job", as_index=False)["release"]
@@ -89,7 +91,13 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
         .rename(columns={"deadline": "Deadline"})
     )
 
-    completed_rows = df[(df.get("phase") != "Blocked") & (pd.to_numeric(df.get("remaining"), errors="coerce") == 0)]
+    phase_series = df["phase"] if "phase" in df.columns else pd.Series("", index=df.index)
+    remaining_series = (
+        pd.to_numeric(df["remaining"], errors="coerce")
+        if "remaining" in df.columns
+        else pd.Series(float("nan"), index=df.index)
+    )
+    completed_rows = df[(phase_series != "Blocked") & (remaining_series == 0)]
     completions = (
         completed_rows.groupby("job", as_index=False)["end"]
         .min()
