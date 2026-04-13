@@ -1,12 +1,17 @@
 from pathlib import Path
-
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1]
 SMOKE_PAGES = [
+    "pages/00_Algorithm_Explorer.py",
+    "pages/01_Task_Set_Builder.py",
     "pages/02_Compare_Mode.py",
+    "pages/06_Cyclic_Executive.py",
+    "pages/10_Time_Demand.py",
     "pages/11_Priority_Inversion.py",
+    "pages/15_Slack_Stealing.py",
     "pages/16_Mixed_Workload_Analysis.py",
+    "pages/17_Benchmark_Suite.py",
 ]
 
 
