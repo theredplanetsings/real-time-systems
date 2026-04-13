@@ -51,3 +51,22 @@ def test_deadline_miss_details_flags_not_finished_jobs() -> None:
     details = deadline_miss_details(segments, horizon=3)
     assert len(details) == 1
     assert details.iloc[0]["Finish"] == "not finished"
+
+
+def test_summarize_run_handles_non_numeric_fields() -> None:
+    segments = [
+        {"job": "6.0", "phase": "CPU", "remaining": "done", "end": "n/a", "deadline": "oops"},
+    ]
+    result = summarize_run(segments, horizon=2)
+    assert result["jobs_seen"] == 1
+    assert result["jobs_completed"] == 0
+    assert result["deadline_misses"] == 1
+
+
+def test_summarize_run_ignores_rows_without_job() -> None:
+    segments = [
+        {"phase": "CPU", "remaining": 0, "end": 1, "deadline": 1},
+    ]
+    result = summarize_run(segments, horizon=2)
+    assert result["jobs_seen"] == 0
+    assert result["jobs_completed"] == 0
