@@ -4,7 +4,7 @@
 
 1. Create a branch from `main`.
 2. Make focused, test-backed changes.
-3. Run `pytest -q` locally.
+3. Run `python3 -m pytest -q tests` locally (or `make test`).
 4. Open a pull request with a clear summary.
 
 ## Commit Convention
@@ -31,5 +31,5 @@ Examples:
 ```bash
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
-pytest -q
+python3 -m pytest -q tests
 ```
