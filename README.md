@@ -94,6 +94,14 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
+### Run tests
+```bash
+pip install -r requirements-dev.txt
+python3 -m pytest -q tests
+# or
+make test
+```
+
 ## Structure
 ```
 real-time-systems/
