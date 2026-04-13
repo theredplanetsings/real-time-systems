@@ -26,5 +26,7 @@ def compute_hyperperiod(periods: List[int]) -> int:
 
     hyper = 1
     for period in periods:
+        if period <= 0:
+            raise ValueError("Periods must be positive integers")
         hyper = lcm(hyper, period)
     return hyper
