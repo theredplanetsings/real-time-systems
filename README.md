@@ -75,6 +75,7 @@ Recent project updates are tracked in `CHANGELOG.md`.
 1. Added fail-fast validation in shared utilisation and density math for non-positive task periods/deadlines.
 2. Normalized negative compare-metrics horizons to zero for more predictable run summaries and miss-detail tables.
 3. Switched compare miss-details output to deterministic natural job ordering (e.g., 2.0 before 10.0).
+4. Added a `make quick-test` shortcut for running the highest-signal core test subset.
 
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.
@@ -106,6 +107,8 @@ pip install -r requirements-dev.txt
 python3 -m pytest -q tests
 # or
 make test
+# fast core subset
+make quick-test
 ```
 
 ## Structure
