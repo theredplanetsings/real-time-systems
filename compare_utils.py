@@ -1,17 +1,24 @@
 from __future__ import annotations
 import pandas as pd
 
-
 def _to_float(value: object, default: float = 0.0) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
         return default
 
-
 def _normalize_horizon(horizon: int) -> int:
     return max(int(horizon), 0)
 
+def _job_sort_key(value: object) -> tuple[int, object]:
+    text = str(value)
+    parts = text.split(".")
+    numeric_parts: list[int] = []
+    for part in parts:
+        if not part.isdigit():
+            return (1, text)
+        numeric_parts.append(int(part))
+    return (0, tuple(numeric_parts))
 
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
     horizon = _normalize_horizon(horizon)
@@ -73,7 +80,6 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
         "cpu_or_resource_ticks": int(cpu_or_resource_ticks),
     }
 
-
 def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
     horizon = _normalize_horizon(horizon)
     if not segments:
@@ -129,6 +135,6 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
     details["Finish"] = details["Finish"].fillna("not finished")
 
     details = details.rename(columns={"job": "Job"})
-    return details[["Job", "Release", "Deadline", "Finish", "Lateness"]].sort_values(
-        by=["Deadline", "Job"]
-    )
+    details["_job_sort"] = details["Job"].map(_job_sort_key)
+    details = details.sort_values(by=["Deadline", "_job_sort"])
+    return details[["Job", "Release", "Deadline", "Finish", "Lateness"]]
