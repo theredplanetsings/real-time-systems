@@ -91,3 +91,19 @@ def test_deadline_miss_details_requires_release_and_deadline() -> None:
     ]
     details = deadline_miss_details(segments, horizon=3)
     assert details.empty
+
+
+def test_summarize_run_normalizes_negative_horizon() -> None:
+    segments = [
+        {"job": "9.0", "phase": "CPU", "remaining": 1, "end": 1, "deadline": 0},
+    ]
+    result = summarize_run(segments, horizon=-5)
+    assert result["deadline_misses"] == 1
+
+
+def test_deadline_miss_details_normalizes_negative_horizon() -> None:
+    segments = [
+        {"job": "10.0", "phase": "CPU", "remaining": 1, "release": 0, "deadline": 1, "end": 1}
+    ]
+    details = deadline_miss_details(segments, horizon=-2)
+    assert details.empty

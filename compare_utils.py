@@ -9,7 +9,12 @@ def _to_float(value: object, default: float = 0.0) -> float:
         return default
 
 
+def _normalize_horizon(horizon: int) -> int:
+    return max(int(horizon), 0)
+
+
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
+    horizon = _normalize_horizon(horizon)
     if not segments:
         return {
             "jobs_seen": 0,
@@ -70,6 +75,7 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
 
 
 def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
+    horizon = _normalize_horizon(horizon)
     if not segments:
         return pd.DataFrame()
 

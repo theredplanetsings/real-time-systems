@@ -73,6 +73,7 @@ Recent project updates are tracked in `CHANGELOG.md`.
 ## Recent Improvements (2026-04-15)
 
 1. Added fail-fast validation in shared utilisation and density math for non-positive task periods/deadlines.
+2. Normalized negative compare-metrics horizons to zero for more predictable run summaries and miss-detail tables.
 
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.
