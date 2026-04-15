@@ -1,4 +1,4 @@
-from rt_utils import TaskSpec, rm_bound, schedulability_summary
+from rt_utils import TaskSpec, family_names, rm_bound, schedulability_summary, variants_for_family
 
 
 def _task(task_id: int, period: int, computation: int, deadline: int | None = None) -> TaskSpec:
@@ -46,3 +46,13 @@ def test_dm_uses_density_sufficient_check() -> None:
     tasks = [_task(1, 4, 3), _task(2, 6, 3)]
     result = schedulability_summary(tasks, "DM")
     assert result["status"] == "warn"
+
+
+def test_algorithm_family_names_are_sorted() -> None:
+    names = family_names()
+    assert names == sorted(names)
+
+
+def test_variant_names_are_sorted_for_family() -> None:
+    names = variants_for_family("RM")
+    assert names == sorted(names)

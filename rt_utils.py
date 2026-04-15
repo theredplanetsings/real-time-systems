@@ -117,13 +117,13 @@ COMPARE_ALGORITHMS: Dict[str, Dict[str, str]] = {
 }
 
 def family_names() -> List[str]:
-    return list(ALGORITHM_FAMILIES.keys())
+    return sorted(ALGORITHM_FAMILIES.keys())
 
 def variants_for_family(family: str) -> List[str]:
     family_meta = ALGORITHM_FAMILIES.get(family, {})
     variants = family_meta.get("variants", {})
     if isinstance(variants, dict):
-        return list(variants.keys())
+        return sorted(variants.keys())
     return []
 
 def schedulability_summary(
