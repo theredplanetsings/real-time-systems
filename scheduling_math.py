@@ -5,11 +5,9 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from rt_utils import TaskSpec
 
-
 def _validate_positive(value: int, field_name: str) -> None:
     if value <= 0:
         raise ValueError(f"Task {field_name} must be a positive integer")
-
 
 def utilisation(tasks: List["TaskSpec"]) -> float:
     if not tasks:
@@ -17,7 +15,6 @@ def utilisation(tasks: List["TaskSpec"]) -> float:
     for task in tasks:
         _validate_positive(task.period, "period")
     return sum(task.computation / task.period for task in tasks)
-
 
 def density(tasks: List["TaskSpec"]) -> float:
     if not tasks:
@@ -27,12 +24,10 @@ def density(tasks: List["TaskSpec"]) -> float:
         _validate_positive(task.deadline, "deadline")
     return sum(task.computation / min(task.deadline, task.period) for task in tasks)
 
-
 def rm_bound(task_count: int) -> float:
     if task_count <= 0:
         return 1.0
     return task_count * (2 ** (1.0 / task_count) - 1.0)
-
 
 def compute_hyperperiod(periods: List[int]) -> int:
     def lcm(a: int, b: int) -> int:
