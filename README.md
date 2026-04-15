@@ -79,6 +79,7 @@ Recent project updates are tracked in `CHANGELOG.md`.
 5. Expanded verification guidance with fast-path and focused-suite test commands.
 6. Updated contributor workflow guidance to use `make quick-test` during iteration and keep commits tightly scoped.
 7. Standardized algorithm family/variant ordering to deterministic sorted lists for consistent UI selection behavior.
+8. Added smoke coverage to assert all configured Streamlit page paths exist before page execution checks.
 
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.

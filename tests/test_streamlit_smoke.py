@@ -20,6 +20,11 @@ def _assert_clean_run(app: AppTest) -> None:
     assert len(app.error) == 0
 
 
+def test_smoke_page_paths_exist() -> None:
+    missing = [relative_path for relative_path in SMOKE_PAGES if not (ROOT / relative_path).exists()]
+    assert not missing
+
+
 def test_core_pages_render_without_runtime_errors() -> None:
     for relative_path in SMOKE_PAGES:
         app = AppTest.from_file(str(ROOT / relative_path))
