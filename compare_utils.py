@@ -1,14 +1,17 @@
 from __future__ import annotations
 import pandas as pd
 
+
 def _to_float(value: object, default: float = 0.0) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
         return default
 
+
 def _normalize_horizon(horizon: int) -> int:
     return max(int(horizon), 0)
+
 
 def _job_sort_key(value: object) -> tuple[int, object]:
     text = str(value)
@@ -19,6 +22,7 @@ def _job_sort_key(value: object) -> tuple[int, object]:
             return (1, text)
         numeric_parts.append(int(part))
     return (0, tuple(numeric_parts))
+
 
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
     horizon = _normalize_horizon(horizon)
@@ -79,6 +83,7 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
         "blocked_ticks": int(blocked_ticks),
         "cpu_or_resource_ticks": int(cpu_or_resource_ticks),
     }
+
 
 def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
     horizon = _normalize_horizon(horizon)

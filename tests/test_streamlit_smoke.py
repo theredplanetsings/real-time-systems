@@ -21,7 +21,9 @@ def _assert_clean_run(app: AppTest) -> None:
 
 
 def test_smoke_page_paths_exist() -> None:
-    missing = [relative_path for relative_path in SMOKE_PAGES if not (ROOT / relative_path).exists()]
+    missing = [
+        relative_path for relative_path in SMOKE_PAGES if not (ROOT / relative_path).exists()
+    ]
     assert not missing
 
 
