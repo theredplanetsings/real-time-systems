@@ -77,6 +77,7 @@ Recent project updates are tracked in `CHANGELOG.md`.
 3. Switched compare miss-details output to deterministic natural job ordering (e.g., 2.0 before 10.0).
 4. Added a `make quick-test` shortcut for running the highest-signal core test subset.
 5. Expanded verification guidance with fast-path and focused-suite test commands.
+6. Updated contributor workflow guidance to use `make quick-test` during iteration and keep commits tightly scoped.
 
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.

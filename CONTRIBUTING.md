@@ -4,7 +4,7 @@
 
 1. Create a branch from `main`.
 2. Make focused, test-backed changes.
-3. Run `make check` locally (or run lint/format/test commands directly).
+3. Run `make quick-test` during iteration, then `make check` before opening a PR.
 4. Open a pull request with a clear summary.
 
 ## Commit Convention
@@ -12,6 +12,7 @@
 - Keep commit messages short, specific, and unique.
 - Prefer 1 to 4 words where possible.
 - Use imperative style.
+- Keep each commit scoped to one improvement plus related docs/tests.
 
 Examples:
 - `core sched tests`
