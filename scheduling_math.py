@@ -1,6 +1,6 @@
 from __future__ import annotations
 import math
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Iterable, List
 
 if TYPE_CHECKING:
     from rt_utils import TaskSpec
@@ -29,7 +29,7 @@ def rm_bound(task_count: int) -> float:
         return 1.0
     return task_count * (2 ** (1.0 / task_count) - 1.0)
 
-def compute_hyperperiod(periods: List[int]) -> int:
+def compute_hyperperiod(periods: Iterable[int]) -> int:
     def lcm(a: int, b: int) -> int:
         return abs(a * b) // math.gcd(a, b)
 

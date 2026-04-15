@@ -80,6 +80,7 @@ Recent project updates are tracked in `CHANGELOG.md`.
 6. Updated contributor workflow guidance to use `make quick-test` during iteration and keep commits tightly scoped.
 7. Standardized algorithm family/variant ordering to deterministic sorted lists for consistent UI selection behavior.
 8. Added smoke coverage to assert all configured Streamlit page paths exist before page execution checks.
+9. Broadened hyperperiod helper typing to accept generic iterables (for tuple/list parity).
 
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.
