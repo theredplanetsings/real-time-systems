@@ -20,6 +20,20 @@ pip install -r requirements-dev.txt
 pytest -q
 ```
 
+4. Run the fast core subset when iterating:
+
+```bash
+make quick-test
+```
+
+5. Run focused suites for changed areas:
+
+```bash
+pytest -q tests/test_compare_metrics.py
+pytest -q tests/test_scheduling_math.py
+pytest -q tests/test_streamlit_smoke.py
+```
+
 ## Scope Of Tests
 
 - Core schedulability checks for EDF, RM, DM, and global EDF thresholds.

@@ -76,6 +76,7 @@ Recent project updates are tracked in `CHANGELOG.md`.
 2. Normalized negative compare-metrics horizons to zero for more predictable run summaries and miss-detail tables.
 3. Switched compare miss-details output to deterministic natural job ordering (e.g., 2.0 before 10.0).
 4. Added a `make quick-test` shortcut for running the highest-signal core test subset.
+5. Expanded verification guidance with fast-path and focused-suite test commands.
 
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.
