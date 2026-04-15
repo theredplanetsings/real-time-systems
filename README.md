@@ -70,6 +70,10 @@ T3 = (3, 0, 20, 4, 20)
 
 Recent project updates are tracked in `CHANGELOG.md`.
 
+## Recent Improvements (2026-04-15)
+
+1. Added fail-fast validation in shared utilisation and density math for non-positive task periods/deadlines.
+
 ### PNG Export Notes
 - PNG export uses Plotly + Kaleido and requires a Chrome/Chromium runtime.
 - For Streamlit Cloud deployments, this repository includes `packages.txt` with `chromium` so PNG downloads work after redeploy.
