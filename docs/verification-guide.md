@@ -31,6 +31,7 @@ make quick-test
 ```bash
 pytest -q tests/test_compare_metrics.py
 pytest -q tests/test_scheduling_math.py
+pytest -q tests/test_schedulability_core.py
 pytest -q tests/test_streamlit_smoke.py
 ```
 
@@ -61,6 +62,7 @@ streamlit run streamlit_app.py
 - Task Set Builder JSON export
 - Task Set Builder scenario bundle JSON export
 - Compare Mode PNG export
+- Dashboard home page cards and local run command block
 
 ## CI Verification
 
