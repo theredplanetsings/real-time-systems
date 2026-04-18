@@ -42,6 +42,12 @@ def test_global_edf_checks_processor_density() -> None:
     assert bad["status"] == "warn"
 
 
+def test_global_edf_normalizes_invalid_processor_count() -> None:
+    tasks = [_task(1, 4, 2), _task(2, 5, 2), _task(3, 10, 2)]
+    result = schedulability_summary(tasks, "Global EDF", processors=0)
+    assert result["status"] == "warn"
+
+
 def test_dm_uses_density_sufficient_check() -> None:
     tasks = [_task(1, 4, 3), _task(2, 6, 3)]
     result = schedulability_summary(tasks, "DM")
