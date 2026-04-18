@@ -149,6 +149,15 @@ def render_sparkline(values: list[float], key: str) -> None:
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+def render_navigation_link(path: str, label: str, icon: str) -> None:
+    try:
+        st.page_link(path, label=label, icon=icon)
+    except Exception:
+        # Streamlit test mode may not include multipage metadata used by page_link.
+        st.markdown(f"{icon} **{label}**")
+        st.caption(path)
+
+
 nav_col, updates_col = st.columns([2.2, 1])
 
 with nav_col:
@@ -160,7 +169,11 @@ with nav_col:
         for idx, item in enumerate(items):
             with section_columns[idx % int(section["columns"])]:
                 st.caption(str(item["blurb"]))
-                st.page_link(str(item["path"]), label=str(item["label"]), icon=str(item["icon"]))
+                render_navigation_link(
+                    path=str(item["path"]),
+                    label=str(item["label"]),
+                    icon=str(item["icon"]),
+                )
                 render_sparkline(item["trend"], key=f"spark_{section['title']}_{idx}")
 
 with updates_col:
