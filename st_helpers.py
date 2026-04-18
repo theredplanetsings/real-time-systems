@@ -116,6 +116,16 @@ def render_task_inputs(
 
     validation_messages: List[str] = []
 
+    expected_task_ids = pd.Series(range(1, len(df) + 1), index=df.index)
+    if "task_id" in df.columns:
+        task_id_series = pd.to_numeric(df["task_id"], errors="coerce")
+    else:
+        task_id_series = pd.Series([None] * len(df), index=df.index)
+    normalized_task_ids = task_id_series.fillna(-1).astype(int)
+    if not normalized_task_ids.equals(expected_task_ids):
+        validation_messages.append("Reset task IDs to sequential values (1..N).")
+    df["task_id"] = expected_task_ids.astype(int)
+
     if include_criticality and criticality_choices:
         allowed = {str(choice) for choice in criticality_choices}
         if "criticality" in df.columns:
