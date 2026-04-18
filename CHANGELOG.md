@@ -13,3 +13,9 @@
 - Added dynamic sidebar controls, shared validation, cached plot helpers, and clearer PNG export errors.
 - Added a GitHub Actions CI workflow, dev tooling config, verification guide, and contribution guide.
 - Refreshed the dashboard home page contrast for improved readability.
+- Hardened compare-metrics horizon normalization to handle invalid/non-numeric inputs safely.
+- Counted compare-mode jobs using non-empty IDs only for cleaner summary totals.
+- Added fail-fast computation-time validation in utilisation and density helpers.
+- Normalized invalid global processor counts to a safe minimum of 1 in schedulability summaries.
+- Stabilized task editor IDs to sequential 1..N values for deterministic job naming.
+- Expanded smoke coverage to include the dashboard home page.
