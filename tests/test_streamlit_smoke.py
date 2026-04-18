@@ -32,3 +32,9 @@ def test_core_pages_render_without_runtime_errors() -> None:
         app = AppTest.from_file(str(ROOT / relative_path))
         app.run(timeout=30)
         _assert_clean_run(app)
+
+
+def test_dashboard_home_renders_without_runtime_errors() -> None:
+    app = AppTest.from_file(str(ROOT / "streamlit_app.py"))
+    app.run(timeout=30)
+    _assert_clean_run(app)
