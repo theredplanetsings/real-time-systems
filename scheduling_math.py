@@ -13,6 +13,7 @@ def utilisation(tasks: List["TaskSpec"]) -> float:
     if not tasks:
         return 0.0
     for task in tasks:
+        _validate_positive(task.computation, "computation")
         _validate_positive(task.period, "period")
     return sum(task.computation / task.period for task in tasks)
 
@@ -20,6 +21,7 @@ def density(tasks: List["TaskSpec"]) -> float:
     if not tasks:
         return 0.0
     for task in tasks:
+        _validate_positive(task.computation, "computation")
         _validate_positive(task.period, "period")
         _validate_positive(task.deadline, "deadline")
     return sum(task.computation / min(task.deadline, task.period) for task in tasks)
