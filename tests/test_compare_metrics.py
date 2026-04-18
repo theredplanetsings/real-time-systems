@@ -109,6 +109,24 @@ def test_deadline_miss_details_normalizes_negative_horizon() -> None:
     assert details.empty
 
 
+def test_summarize_run_handles_non_numeric_horizon() -> None:
+    segments = [
+        {"job": "11.0", "phase": "CPU", "remaining": 1, "end": 1, "deadline": 0},
+    ]
+    result = summarize_run(segments, horizon="invalid")
+    assert result["deadline_misses"] == 1
+
+
+def test_summarize_run_ignores_blank_job_identifiers() -> None:
+    segments = [
+        {"job": "", "phase": "CPU", "remaining": 0, "end": 1, "deadline": 1},
+        {"job": "   ", "phase": "CPU", "remaining": 0, "end": 1, "deadline": 1},
+        {"job": None, "phase": "CPU", "remaining": 0, "end": 1, "deadline": 1},
+    ]
+    result = summarize_run(segments, horizon=2)
+    assert result["jobs_seen"] == 0
+
+
 def test_deadline_miss_details_uses_natural_job_sort_order() -> None:
     segments = [
         {
