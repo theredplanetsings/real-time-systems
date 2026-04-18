@@ -10,7 +10,10 @@ def _to_float(value: object, default: float = 0.0) -> float:
 
 
 def _normalize_horizon(horizon: int) -> int:
-    return max(int(horizon), 0)
+    try:
+        return max(int(horizon), 0)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _job_sort_key(value: object) -> tuple[int, object]:
@@ -45,7 +48,19 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
             "cpu_or_resource_ticks": 0,
         }
 
-    jobs_seen = df["job"].nunique() if "job" in df.columns else 0
+    jobs_seen = 0
+    if "job" in df.columns:
+        seen_job_ids = set()
+        for job_id in df["job"].tolist():
+            if pd.isna(job_id):
+                continue
+            normalized_job_id = str(job_id).strip()
+            if not normalized_job_id:
+                continue
+            if normalized_job_id.lower() in {"nan", "none", "null"}:
+                continue
+            seen_job_ids.add(normalized_job_id)
+        jobs_seen = len(seen_job_ids)
     blocked_ticks = int((df["phase"] == "Blocked").sum()) if "phase" in df.columns else 0
     executed_df = df[df["phase"] != "Blocked"] if "phase" in df.columns else df
     cpu_or_resource_ticks = len(executed_df)
