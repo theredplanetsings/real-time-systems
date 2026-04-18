@@ -131,6 +131,11 @@ def schedulability_summary(
     algorithm: str,
     processors: int = 1,
 ) -> Dict[str, object]:
+    try:
+        processors = max(int(processors), 1)
+    except (TypeError, ValueError):
+        processors = 1
+
     total_util = utilisation(tasks)
     total_density = density(tasks)
     summary = {
