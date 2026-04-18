@@ -40,3 +40,13 @@ def test_utilisation_rejects_non_positive_period() -> None:
 def test_density_rejects_non_positive_deadline() -> None:
     with pytest.raises(ValueError):
         density([_task(period=5, deadline=0)])
+
+
+def test_utilisation_rejects_non_positive_computation() -> None:
+    with pytest.raises(ValueError):
+        utilisation([_task(period=5, computation=0)])
+
+
+def test_density_rejects_non_positive_computation() -> None:
+    with pytest.raises(ValueError):
+        density([_task(period=5, computation=0)])
