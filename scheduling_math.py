@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from rt_utils import TaskSpec
 
 def _validate_positive(value: int, field_name: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"Task {field_name} must be an integer")
     if value <= 0:
         raise ValueError(f"Task {field_name} must be a positive integer")
 
@@ -37,6 +39,8 @@ def compute_hyperperiod(periods: Iterable[int]) -> int:
 
     hyper = 1
     for period in periods:
+        if isinstance(period, bool) or not isinstance(period, int):
+            raise ValueError("Periods must be positive integers")
         if period <= 0:
             raise ValueError("Periods must be positive integers")
         hyper = lcm(hyper, period)
