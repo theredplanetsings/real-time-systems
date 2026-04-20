@@ -19,3 +19,7 @@
 - Normalized invalid global processor counts to a safe minimum of 1 in schedulability summaries.
 - Stabilized task editor IDs to sequential 1..N values for deterministic job naming.
 - Expanded smoke coverage to include the dashboard home page.
+- Normalized compare-mode null-like job IDs (`nan`/`none`/`null`) across summaries and miss details.
+- Tightened scheduling-math validation to reject non-integer and boolean timing fields with clear errors.
+- Narrowed dashboard navigation fallback handling to expected Streamlit/test-mode exceptions.
+- Added focused regressions for compare metrics, integer validation, and navigation fallback behavior.
