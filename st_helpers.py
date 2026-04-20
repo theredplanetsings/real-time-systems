@@ -20,7 +20,6 @@ from rt_utils import (
     variants_for_family,
 )
 
-
 def render_sidebar(_current_algorithm: str, show_protocol: bool = True) -> Optional[str]:
     protocol = None
     if show_protocol:
@@ -28,7 +27,6 @@ def render_sidebar(_current_algorithm: str, show_protocol: bool = True) -> Optio
         protocol = st.sidebar.selectbox("Resource protocol", PROTOCOLS)
 
     return protocol
-
 
 def render_task_inputs(
     num_tasks: int,
@@ -283,9 +281,7 @@ def render_task_inputs(
                 wcet_hi,
             )
         )
-
     return rows
-
 
 def render_schedulability(tasks: List[TaskSpec], algorithm: str, processors: int = 1) -> None:
     summary = schedulability_summary(tasks, algorithm, processors)
@@ -328,7 +324,6 @@ def cached_schedule_figure(
         range_start=range_start,
         range_end=range_end,
     )
-
 
 def render_algorithm_workbench(
     *,
