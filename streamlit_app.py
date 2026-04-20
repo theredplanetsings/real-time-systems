@@ -1,5 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
+from streamlit.errors import StreamlitAPIException
 from rt_utils import ALGORITHMS, ALGORITHM_FAMILIES
 
 NAV_SECTIONS = [
@@ -148,15 +149,13 @@ def render_sparkline(values: list[float], key: str) -> None:
     )
     st.plotly_chart(fig, use_container_width=True, key=key)
 
-
 def render_navigation_link(path: str, label: str, icon: str) -> None:
     try:
         st.page_link(path, label=label, icon=icon)
-    except Exception:
+    except (AttributeError, KeyError, RuntimeError, StreamlitAPIException):
         # Streamlit test mode may not include multipage metadata used by page_link.
         st.markdown(f"{icon} **{label}**")
         st.caption(path)
-
 
 nav_col, updates_col = st.columns([2.2, 1])
 
