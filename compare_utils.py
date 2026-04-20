@@ -1,13 +1,11 @@
 from __future__ import annotations
 import pandas as pd
 
-
 def _to_float(value: object, default: float = 0.0) -> float:
     try:
         return float(value)
     except (TypeError, ValueError):
         return default
-
 
 def _normalize_horizon(horizon: int) -> int:
     try:
@@ -15,6 +13,15 @@ def _normalize_horizon(horizon: int) -> int:
     except (TypeError, ValueError):
         return 0
 
+def _normalize_job_id(value: object) -> str:
+    if pd.isna(value):
+        return ""
+    text = str(value).strip()
+    if not text:
+        return ""
+    if text.lower() in {"nan", "none", "null"}:
+        return ""
+    return text
 
 def _job_sort_key(value: object) -> tuple[int, object]:
     text = str(value)
@@ -25,7 +32,6 @@ def _job_sort_key(value: object) -> tuple[int, object]:
             return (1, text)
         numeric_parts.append(int(part))
     return (0, tuple(numeric_parts))
-
 
 def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, int]:
     horizon = _normalize_horizon(horizon)
@@ -52,12 +58,8 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
     if "job" in df.columns:
         seen_job_ids = set()
         for job_id in df["job"].tolist():
-            if pd.isna(job_id):
-                continue
-            normalized_job_id = str(job_id).strip()
+            normalized_job_id = _normalize_job_id(job_id)
             if not normalized_job_id:
-                continue
-            if normalized_job_id.lower() in {"nan", "none", "null"}:
                 continue
             seen_job_ids.add(normalized_job_id)
         jobs_seen = len(seen_job_ids)
@@ -69,7 +71,7 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
     deadlines: dict[str, float] = {}
 
     for _, row in df.iterrows():
-        job_id = str(row.get("job", ""))
+        job_id = _normalize_job_id(row.get("job", ""))
         if not job_id:
             continue
         deadline = _to_float(row.get("deadline", 0), 0.0)
@@ -99,7 +101,6 @@ def summarize_run(segments: list[dict[str, object]], horizon: int) -> dict[str, 
         "cpu_or_resource_ticks": int(cpu_or_resource_ticks),
     }
 
-
 def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd.DataFrame:
     horizon = _normalize_horizon(horizon)
     if not segments:
@@ -109,6 +110,12 @@ def deadline_miss_details(segments: list[dict[str, object]], horizon: int) -> pd
     if df.empty or "job" not in df.columns:
         return pd.DataFrame()
     if "release" not in df.columns or "deadline" not in df.columns:
+        return pd.DataFrame()
+
+    df = df.copy()
+    df["job"] = df["job"].map(_normalize_job_id)
+    df = df[df["job"] != ""]
+    if df.empty:
         return pd.DataFrame()
 
     releases = (
