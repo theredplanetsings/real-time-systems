@@ -14,9 +14,11 @@ SMOKE_PAGES = [
     "pages/17_Benchmark_Suite.py",
 ]
 
+
 def _assert_clean_run(app: AppTest) -> None:
     assert len(app.exception) == 0
     assert len(app.error) == 0
+
 
 def test_smoke_page_paths_exist() -> None:
     missing = [
@@ -24,16 +26,19 @@ def test_smoke_page_paths_exist() -> None:
     ]
     assert not missing
 
+
 def test_core_pages_render_without_runtime_errors() -> None:
     for relative_path in SMOKE_PAGES:
         app = AppTest.from_file(str(ROOT / relative_path))
         app.run(timeout=30)
         _assert_clean_run(app)
 
+
 def test_dashboard_home_renders_without_runtime_errors() -> None:
     app = AppTest.from_file(str(ROOT / "streamlit_app.py"))
     app.run(timeout=30)
     _assert_clean_run(app)
+
 
 def test_render_navigation_link_falls_back_for_runtime_errors(monkeypatch) -> None:
     import streamlit_app
