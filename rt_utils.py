@@ -423,7 +423,7 @@ def task_json_bytes(df: pd.DataFrame) -> bytes:
     payload = {"tasks": df.to_dict(orient="records")}
     return json.dumps(payload, indent=2).encode("utf-8")
 
-def schedule_png_bytes(fig) -> Tuple[Optional[bytes], Optional[str]]:
+def schedule_png_bytes(fig: go.Figure) -> Tuple[Optional[bytes], Optional[str]]:
     try:
         return fig.to_image(format="png"), None
     except (ImportError, ModuleNotFoundError, RuntimeError, ValueError, OSError) as exc:
