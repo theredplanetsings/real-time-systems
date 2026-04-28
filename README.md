@@ -180,3 +180,7 @@ real-time-systems/
 Each algorithm folder contains a focused script (or set of scripts) for the named
 method, plus any pre-generated schedule images and a short README describing the
 contents.
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE](LICENSE) file for details.
