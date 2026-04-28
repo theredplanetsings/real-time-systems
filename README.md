@@ -184,3 +184,7 @@ contents.
 ## License
 
 This project is licensed under the MIT License — see [LICENSE](LICENSE) file for details.
+
+## Development
+
+For detailed development setup, workflow, and contribution guidelines, see [DEVELOPMENT.md](DEVELOPMENT.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
