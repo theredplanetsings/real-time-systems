@@ -1,10 +1,51 @@
 repos:
+  # Standard pre-commit hooks for file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix end of file
+      - id: check-yaml
+        name: Check YAML
+      - id: check-added-large-files
+        name: Check for large files
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+      - id: check-json
+        name: Check JSON
+      - id: debug-statements
+        name: Check for debug statements
+
+  # Code formatting with Ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
     hooks:
       - id: ruff
+        name: Ruff linter
+        args: ["--select=E,F,I,B", "--line-length=100"]
       - id: ruff-format
+        name: Ruff formatter
+        args: ["--line-length=100"]
+
+  # Code formatting with Black
   - repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
       - id: black
+        name: Black formatter
+        language_version: python3.10
+        args: ["--line-length=100"]
+
+# Configuration for pre-commit itself
+default_language_version:
+  python: python3.10
+
+# Don't run on certain paths
+exclude: |
+  (?x)^(
+    legacy_pages/|
+    \.pytest_cache/|
+    \.streamlit/
+  )

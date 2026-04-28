@@ -85,6 +85,28 @@ make check
 streamlit run pages/00_Algorithm_Explorer.py
 ```
 
+### 3b. Setup Pre-commit Hooks (Optional but Recommended)
+
+Pre-commit hooks automatically run code quality checks before each commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Now, code formatting and linting will run automatically on `git commit`:
+
+```bash
+# To run hooks manually on all files
+pre-commit run --all-files
+
+# To run hooks on staged files
+pre-commit run
+
+# To skip pre-commit checks (not recommended)
+git commit --no-verify
+```
+
 ### 4. Format Code
 
 ```bash
