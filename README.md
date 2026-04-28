@@ -119,6 +119,13 @@ make test
 make quick-test
 ```
 
+### Available Make targets
+```bash
+make help      # Show all available make targets
+make fmt       # Auto-format code
+make lint      # Check code quality
+```
+
 ## Structure
 ```
 real-time-systems/
