@@ -8,3 +8,19 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v"
+markers = [
+    "core: Core scheduling algorithm tests",
+    "math: Scheduling math and feasibility tests",
+    "protocol: Resource protocol (PIP, PCP, NPP) tests",
+    "ui: Streamlit page and UI tests",
+    "smoke: Smoke tests for page existence",
+    "slow: Tests that take longer to run",
+    "integration: Integration tests across components",
+]

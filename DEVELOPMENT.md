@@ -139,6 +139,33 @@ pytest tests/test_scheduling_math.py::test_utilisation
 - `test_cyclic_executive.py`: Cyclic executive logic
 - `test_streamlit_smoke.py`: Streamlit page existence and basic execution
 
+### Test Markers
+
+Tests are organized with pytest markers for easy filtering:
+
+```bash
+# Run only core algorithm tests
+pytest -m core
+
+# Run math and protocol tests
+pytest -m "math or protocol"
+
+# Skip slow tests
+pytest -m "not slow"
+
+# Run UI tests only
+pytest -m ui
+```
+
+Available markers:
+- `@pytest.mark.core`: Core scheduling algorithm tests
+- `@pytest.mark.math`: Scheduling math and feasibility tests
+- `@pytest.mark.protocol`: Resource protocol tests (PIP, PCP, NPP)
+- `@pytest.mark.ui`: Streamlit page and UI tests
+- `@pytest.mark.smoke`: Smoke tests for page existence
+- `@pytest.mark.slow`: Tests that take longer to run
+- `@pytest.mark.integration`: Integration tests across components
+
 ## Code Quality
 
 The project uses:
