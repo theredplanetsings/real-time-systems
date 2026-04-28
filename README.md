@@ -1,4 +1,7 @@
 # Real-Time Systems
+
+[![Tests](https://github.com/theredplanetsings/real-time-systems/workflows/tests/badge.svg)](https://github.com/theredplanetsings/real-time-systems/actions/workflows/tests.yml)
+
 Real-time scheduling examples, analysis pages, and interactive plots in a Streamlit dashboard.
 
 ## Dashboard
